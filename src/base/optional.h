@@ -363,7 +363,7 @@ class Optional
   template<class U = T,
            class = enable_if_convertible<typename std::decay<U>::type, T>>
   constexpr T valueOr(U&& defaultValue) const {
-    return this->constructed() ? get() : std::move(defaultValue);
+    return this->constructed() ? get() : std::forward<U>(defaultValue);
   }
 
   // Pointer-like operators

@@ -28,7 +28,7 @@ namespace astc_codec {
 // ASTC specification does not give a maximum number, however unquantized color
 // values have a maximum range of 255, meaning that we can't feasibly have more
 // than eight bits per value.
-constexpr int kLog2MaxRangeForBits = 8;
+constexpr unsigned int kLog2MaxRangeForBits = 8;
 
 // Ranges can take any of the the forms 2^k, 3*2^k, or 5*2^k for k up to
 // kLog2MaxRangeForBits. Hence we have three types of ranges. Since the
@@ -37,7 +37,7 @@ constexpr int kLog2MaxRangeForBits = 8;
 // that accompany [7, 8]-bits, as (3 * 2^7 = 384 > 255). But we do have trits
 // and quints that accompany no bits. Hence we have a total of
 // 3 * kLog2MaxRangeForBits - 3 - 2 + 2 total ranges.
-constexpr int kNumPossibleRanges = 3 * kLog2MaxRangeForBits - 3;
+constexpr unsigned int kNumPossibleRanges = 3 * kLog2MaxRangeForBits - 3;
 
 // Returns an iterator through the available ASTC ranges.
 std::array<int, kNumPossibleRanges>::const_iterator ISERangeBegin();
@@ -63,26 +63,29 @@ class IntegerSequenceCodec {
   // [0, range]. This is used to determine the layout of ISE encoded bit
   // streams. The returned array holds the number of trits, quints, and bits
   // respectively. range is expected to be within the interval [1, 5242879]
-  static void GetCountsForRange(int range, int* trits, int* quints, int* bits);
+  static void GetCountsForRange(int range, int* trits, int* quints,
+                                unsigned int* bits);
 
   // Returns the number of bits needed to encode the given number of values with
   // respect to the number of trits, quints, and bits specified in ise_counts
   // (in that order). It is expected that either trits or quints can be
   // nonzero, but not both, and neither can be larger than one. Anything else is
   // undefined.
-  static int GetBitCount(int num_vals, int trits, int quints, int bits);
+  static int GetBitCount(int num_vals, int trits, int quints,
+                         unsigned int bits);
 
   // Convenience function that returns the number of bits needed to encoded
   // num_vals within the range [0, range] (inclusive).
   static inline int GetBitCountForRange(int num_vals, int range) {
-    int trits, quints, bits;
+    int trits, quints;
+    unsigned int bits;
     GetCountsForRange(range, &trits, &quints, &bits);
     return GetBitCount(num_vals, trits, quints, bits);
   }
 
  protected:
   explicit IntegerSequenceCodec(int range);
-  IntegerSequenceCodec(int trits, int quints, int bits);
+  IntegerSequenceCodec(int trits, int quints, unsigned int bits);
 
   // The encoding mode -- since having trits and quints are mutually exclusive,
   // we can store the encoding we decide on in this enum.
@@ -93,7 +96,7 @@ class IntegerSequenceCodec {
   };
 
   EncodingMode encoding_;
-  int bits_;
+  unsigned int bits_;
 
   // Returns the number of values stored in a single ISE block. Since quints and
   // trits are packed three/five to a bit pattern (respectively), each sequence
@@ -106,7 +109,7 @@ class IntegerSequenceCodec {
 
  private:
   // Determines the encoding mode.
-  void InitializeWithCounts(int trits, int quints, int bits);
+  void InitializeWithCounts(int trits, int quints, unsigned int bits);
 };
 
 // The integer sequence decoder. The decoder only remembers the given encoding
@@ -119,8 +122,8 @@ class IntegerSequenceDecoder : public IntegerSequenceCodec {
 
   // Creates a decoder based on the number of trits, quints, and bits expected
   // in the bit stream passed to Decode.
-  IntegerSequenceDecoder(int trits, int quints, int bits)
-      : IntegerSequenceCodec(trits, quints, bits) { }
+  IntegerSequenceDecoder(int trits, int quints, unsigned int bits)
+      : IntegerSequenceCodec(trits, quints, bits) {}
 
   // Decodes num_vals from the bit_src. The number of bits read is dependent
   // on the number of bits required to encode num_vals based on the calculation
@@ -141,8 +144,8 @@ class IntegerSequenceEncoder : public IntegerSequenceCodec {
 
   // Creates an encoder based on the number of trits, quints, and bits for
   // the bit stream produced by Encode.
-  IntegerSequenceEncoder(int trits, int quints, int bits)
-      : IntegerSequenceCodec(trits, quints, bits) { }
+  IntegerSequenceEncoder(int trits, int quints, unsigned int bits)
+      : IntegerSequenceCodec(trits, quints, bits) {}
 
   // Adds a value to the encoding sequence.
   void AddValue(int val) {

@@ -66,7 +66,8 @@ TEST(ASTCIntegerSequenceCodecTest, TestGetCountsForRange) {
     {{ 0, 0, 5 }},  // 31
   };
 
-  int t, q, b;
+  int t, q;
+  unsigned int b;
   for (int i = 1; i < 32; ++i) {
     IntegerSequenceCodec::GetCountsForRange(i, &t, &q, &b);
     EXPECT_EQ(t, kExpectedCounts[i - 1][0]);

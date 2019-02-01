@@ -76,10 +76,6 @@ void InvertBitTransferSigned(int* const a, int* const b) {
   *b &= 0xff;
 }
 
-RgbColor StripAlpha(const RgbaColor& c) {
-  return RgbColor {{ c[0], c[1], c[2] }};
-}
-
 template<typename ContainerType>
 void Quantize(ContainerType* const c, size_t max_value) {
   for (auto& x : *c) {

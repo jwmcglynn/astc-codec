@@ -34,13 +34,6 @@ class UInt128 {
   // Allow explicit casts to uint64_t.
   explicit operator uint64_t() const { return low_; }
 
-  // Copy operators.
-  UInt128& operator=(const UInt128& other) {
-    high_ = other.high_;
-    low_ = other.low_;
-    return *this;
-  }
-
   // Equality operators.
   bool operator==(const UInt128& other) const {
     return high_ == other.high_ && low_ == other.low_;

@@ -26,14 +26,14 @@ namespace {
 
 // Encodes the width and height into an integer so that we can use a switch
 // statement instead of a costly lookup map.
-constexpr int EncodeDims(int width, int height) {
+constexpr unsigned int EncodeDims(unsigned int width, unsigned int height) {
   return (width << 16) | height;
 }
 
 }  // namespace
 
-base::Optional<FootprintType>
-Footprint::GetValidFootprintForDimensions(int width, int height) {
+base::Optional<FootprintType> Footprint::GetValidFootprintForDimensions(
+    unsigned int width, unsigned int height) {
   switch (EncodeDims(width, height)) {
     case EncodeDims(4, 4): return FootprintType::k4x4;
     case EncodeDims(5, 4): return FootprintType::k5x4;
@@ -124,7 +124,8 @@ base::Optional<Footprint> Footprint::Parse(const char* footprint_string) {
   return FromDimensions(width, height);
 }
 
-base::Optional<Footprint> Footprint::FromDimensions(int width, int height) {
+base::Optional<Footprint> Footprint::FromDimensions(unsigned int width,
+                                                    unsigned int height) {
   base::Optional<FootprintType> valid_footprint =
       GetValidFootprintForDimensions(width, height);
   if (valid_footprint) {
@@ -143,9 +144,9 @@ base::Optional<Footprint> Footprint::FromFootprintType(FootprintType type) {
   }
 }
 
-size_t Footprint::StorageRequirements(int width, int height) const {
-  const int blocks_wide = (width + width_ - 1) / width_;
-  const int blocks_high = (height + height_ - 1) / height_;
+size_t Footprint::StorageRequirements(size_t width, size_t height) const {
+  const size_t blocks_wide = (width + width_ - 1) / width_;
+  const size_t blocks_high = (height + height_ - 1) / height_;
 
   constexpr size_t kASTCBlockSizeInBytes = 16;
   return blocks_wide * blocks_high * kASTCBlockSizeInBytes;
@@ -153,8 +154,8 @@ size_t Footprint::StorageRequirements(int width, int height) const {
 
 // Returns bits/pixel for a given footprint.
 float Footprint::Bitrate() const {
-  const int kASTCBlockBitCount = 128;
-  const int footprint_pixel_count = width_ * height_;
+  const unsigned int kASTCBlockBitCount = 128;
+  const unsigned int footprint_pixel_count = width_ * height_;
   return static_cast<float>(kASTCBlockBitCount) /
          static_cast<float>(footprint_pixel_count);
 }

@@ -247,40 +247,40 @@ TEST(Optional, Move) {
   auto o = makeOptional(std::unique_ptr<int>(new int(10)));
   {
     decltype(o) o2 = std::move(o);
-    EXPECT_TRUE(o);
+    EXPECT_TRUE(o);  // NOLINT
     EXPECT_TRUE(o2);
-    EXPECT_FALSE(bool(*o));
+    EXPECT_FALSE(bool(*o));  // NOLINT
     EXPECT_TRUE(bool(*o2));
     EXPECT_EQ(10, **o2);
 
     decltype(o) o3;
     o3 = std::move(o2);
-    EXPECT_TRUE(o2);
+    EXPECT_TRUE(o2);  // NOLINT
     EXPECT_TRUE(o3);
     EXPECT_FALSE(bool(*o2));
     EXPECT_TRUE(bool(*o3));
     EXPECT_EQ(10, **o3);
 
     o3 = std::move(o2);
-    EXPECT_TRUE(o2);
+    EXPECT_TRUE(o2);  // NOLINT
     EXPECT_TRUE(o3);
-    EXPECT_FALSE(bool(*o2));
+    EXPECT_FALSE(bool(*o2));  // NOLINT
     EXPECT_FALSE(bool(*o3));
   }
 
   {
     decltype(o) o1;
     decltype(o) o2 = std::move(o1);
-    EXPECT_FALSE(o1);
+    EXPECT_FALSE(o1);  // NOLINT
     EXPECT_FALSE(o2);
 
     o2 = std::move(o1);
-    EXPECT_FALSE(o1);
+    EXPECT_FALSE(o1);  // NOLINT
     EXPECT_FALSE(o2);
 
     decltype(o) o3{kInplace, new int(20)};
     o3 = std::move(o1);
-    EXPECT_FALSE(o1);
+    EXPECT_FALSE(o1);  // NOLINT
     EXPECT_FALSE(o3);
   }
 }

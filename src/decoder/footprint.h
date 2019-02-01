@@ -36,21 +36,21 @@ class Footprint {
   FootprintType Type() const { return footprint_; }
 
   // Return logical descriptions of the dimensions.
-  int Width() const { return width_; }
-  int Height() const { return height_; }
+  unsigned int Width() const { return width_; }
+  unsigned int Height() const { return height_; }
 
   // Returns the number of pixels for a block with this footprint.
-  int NumPixels() const { return width_ * height_; }
+  unsigned int NumPixels() const { return width_ * height_; }
 
   // Returns the number of bytes needed to store an ASTC encoded image with the
   // given width and height.
-  size_t StorageRequirements(int width, int height) const;
+  size_t StorageRequirements(size_t width, size_t height) const;
 
   // Returns the number of bits used per pixel.
   float Bitrate() const;
 
-  static constexpr int NumValidFootprints() {
-    return static_cast<int>(FootprintType::kCount);
+  static constexpr size_t NumValidFootprints() {
+    return static_cast<size_t>(FootprintType::kCount);
   }
 
   bool operator==(const Footprint& other) const {
@@ -79,7 +79,8 @@ class Footprint {
 
   // Returns a footprint corresponding to a block of the given width and height,
   // or no value if it does not.
-  static base::Optional<Footprint> FromDimensions(int width, int height);
+  static base::Optional<Footprint> FromDimensions(unsigned int width,
+                                                  unsigned int height);
 
   // Returns a Footprint for the given FootprintType.
   static base::Optional<Footprint> FromFootprintType(FootprintType type);
@@ -90,15 +91,15 @@ class Footprint {
 
   // Returns the valid footprint for the width and height if possible.
   static base::Optional<FootprintType> GetValidFootprintForDimensions(
-      int width, int height);
+      unsigned int width, unsigned int height);
 
   // Returns the associated dimension for the given valid footprint.
   static int GetWidthForFootprint(FootprintType footprint);
   static int GetHeightForFootprint(FootprintType footprint);
 
   FootprintType footprint_;
-  int width_;
-  int height_;
+  unsigned int width_;
+  unsigned int height_;
 };
 
 }  // namespace astc_codec
