@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/decoder/endpoint_codec.h"
-#include "src/decoder/intermediate_astc_block.h"
-#include "src/decoder/test/image_utils.h"
-
 #include <random>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "src/decoder/endpoint_codec.h"
+#include "src/decoder/intermediate_astc_block.h"
+#include "src/decoder/test/image_utils.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

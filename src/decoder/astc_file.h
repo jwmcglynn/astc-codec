@@ -15,12 +15,12 @@
 #ifndef ASTC_CODEC_DECODER_ASTC_FILE_H_
 #define ASTC_CODEC_DECODER_ASTC_FILE_H_
 
+#include <memory>
+#include <string>
+
 #include "src/base/optional.h"
 #include "src/decoder/footprint.h"
 #include "src/decoder/physical_astc_block.h"
-
-#include <memory>
-#include <string>
 
 namespace astc_codec {
 

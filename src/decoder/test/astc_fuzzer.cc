@@ -14,11 +14,11 @@
 
 // ASTC fuzzing wrapper to help with fuzz testing.
 
+#include <vector>
+
 #include "src/decoder/codec.h"
 
 #include <benchmark/benchmark.h>
-
-#include <vector>
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   std::string error;

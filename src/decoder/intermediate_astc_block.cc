@@ -13,15 +13,16 @@
 // limitations under the License.
 
 #include "src/decoder/intermediate_astc_block.h"
+
+#include <algorithm>
+#include <numeric>
+#include <sstream>
+
 #include "src/decoder/integer_sequence_codec.h"
 #include "src/base/bit_stream.h"
 #include "src/base/math_utils.h"
 #include "src/base/optional.h"
 #include "src/base/uint128.h"
-
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 
 namespace astc_codec {
 

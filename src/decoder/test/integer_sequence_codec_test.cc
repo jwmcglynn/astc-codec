@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/decoder/integer_sequence_codec.h"
-#include "src/base/uint128.h"
-
 #include <random>
 #include <string>
 #include <vector>
+
+#include "src/base/uint128.h"
+#include "src/decoder/integer_sequence_codec.h"
 
 #include <gtest/gtest.h>
 

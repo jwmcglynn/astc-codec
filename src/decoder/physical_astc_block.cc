@@ -13,13 +13,14 @@
 // limitations under the License.
 
 #include "src/decoder/physical_astc_block.h"
+
+#include <array>
+#include <cmath>
+
 #include "src/base/math_utils.h"
 #include "src/base/optional.h"
 #include "src/base/uint128.h"
 #include "src/decoder/integer_sequence_codec.h"
-
-#include <array>
-#include <cmath>
 
 namespace astc_codec {
 

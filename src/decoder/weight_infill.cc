@@ -13,11 +13,12 @@
 // limitations under the License.
 
 #include "src/decoder/weight_infill.h"
-#include "src/decoder/integer_sequence_codec.h"
 
 #include <array>
 #include <cmath>
 #include <utility>
+
+#include "src/decoder/integer_sequence_codec.h"
 
 namespace astc_codec {
 

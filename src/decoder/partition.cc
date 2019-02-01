@@ -13,9 +13,6 @@
 // limitations under the License.
 
 #include "src/decoder/partition.h"
-#include "src/base/bottom_n.h"
-#include "src/base/utils.h"
-#include "src/decoder/footprint.h"
 
 #include <algorithm>
 #include <array>
@@ -26,6 +23,10 @@
 #include <set>
 #include <unordered_set>
 #include <utility>
+
+#include "src/base/bottom_n.h"
+#include "src/base/utils.h"
+#include "src/decoder/footprint.h"
 
 namespace astc_codec {
 

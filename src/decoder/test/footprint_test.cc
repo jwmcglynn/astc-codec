@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/decoder/footprint.h"
-
 #include <array>
 #include <tuple>
 #include <vector>
+
+#include "src/decoder/footprint.h"
 
 #include <gtest/gtest.h>
 

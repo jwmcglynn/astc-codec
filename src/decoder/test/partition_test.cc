@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/decoder/partition.h"
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include <array>
 #include <random>
 #include <string>
 #include <vector>
+
+#include "src/decoder/partition.h"
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 namespace {
 

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "src/decoder/quantization.h"
-#include "src/base/math_utils.h"
 
 #include <algorithm>
 #include <array>
@@ -21,6 +20,8 @@
 #include <map>
 #include <memory>
 #include <vector>
+
+#include "src/base/math_utils.h"
 
 namespace astc_codec {
 

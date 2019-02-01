@@ -15,15 +15,14 @@
 #ifndef ASTC_CODEC_BASE_OPTIONAL_H_
 #define ASTC_CODEC_BASE_OPTIONAL_H_
 
-#include "src/base/type_traits.h"
-#include "src/base/utils.h"
-
 #include <cassert>
+#include <cstddef>
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
 
-#include <cstddef>
+#include "src/base/type_traits.h"
+#include "src/base/utils.h"
 
 // Optional<T> - a template class to store an optional value of type T.
 //

@@ -15,10 +15,11 @@
 #ifndef ASTC_CODEC_DECODER_FOOTPRINT_H_
 #define ASTC_CODEC_DECODER_FOOTPRINT_H_
 
+#include <cstddef>
+
 #include "include/astc-codec/astc-codec.h"
 #include "src/base/optional.h"
 
-#include <cstddef>
 
 namespace astc_codec {
 

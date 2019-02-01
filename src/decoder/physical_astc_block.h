@@ -19,11 +19,11 @@
 // found here:
 // https://www.opengl.org/registry/specs/KHR/texture_compression_astc_hdr.txt
 
+#include <string>
+
 #include "src/base/optional.h"
 #include "src/base/uint128.h"
 #include "src/decoder/types.h"
-
-#include <string>
 
 namespace astc_codec {
 

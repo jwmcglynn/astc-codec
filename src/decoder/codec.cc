@@ -13,11 +13,12 @@
 // limitations under the License.
 
 #include "src/decoder/codec.h"
+
+#include <cstring>
+
 #include "src/base/uint128.h"
 #include "src/decoder/logical_astc_block.h"
 #include "src/decoder/physical_astc_block.h"
-
-#include <cstring>
 
 namespace astc_codec {
 

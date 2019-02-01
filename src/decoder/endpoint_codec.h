@@ -15,11 +15,11 @@
 #ifndef ASTC_CODEC_DECODER_ENDPOINT_CODEC_H_
 #define ASTC_CODEC_DECODER_ENDPOINT_CODEC_H_
 
-#include "src/decoder/physical_astc_block.h"
-#include "src/decoder/types.h"
-
 #include <array>
 #include <vector>
+
+#include "src/decoder/physical_astc_block.h"
+#include "src/decoder/types.h"
 
 namespace astc_codec {
 

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <vector>
+
 #include "src/decoder/weight_infill.h"
 #include "src/decoder/footprint.h"
 
 #include <gtest/gtest.h>
-
-#include <vector>
 
 namespace astc_codec {
 

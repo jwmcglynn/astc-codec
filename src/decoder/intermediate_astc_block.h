@@ -15,12 +15,12 @@
 #ifndef ASTC_CODEC_DECODER_INTERMEDIATE_ASTC_BLOCK_H_
 #define ASTC_CODEC_DECODER_INTERMEDIATE_ASTC_BLOCK_H_
 
+#include <array>
+#include <vector>
+
 #include "src/base/optional.h"
 #include "src/base/uint128.h"
 #include "src/decoder/physical_astc_block.h"
-
-#include <array>
-#include <vector>
 
 namespace astc_codec {
 

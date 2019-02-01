@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <functional>
+#include <string>
+#include <vector>
+
 #include "src/decoder/quantization.h"
 #include "src/decoder/integer_sequence_codec.h"
 
 #include <gtest/gtest.h>
-
-#include <functional>
-#include <string>
-#include <vector>
 
 namespace astc_codec {
 

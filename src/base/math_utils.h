@@ -15,11 +15,11 @@
 #ifndef ASTC_CODEC_BASE_MATH_UTILS_H_
 #define ASTC_CODEC_BASE_MATH_UTILS_H_
 
-#include "src/base/uint128.h"
-
 #include <cassert>
 #include <cstdint>
 #include <type_traits>
+
+#include "src/base/uint128.h"
 
 namespace astc_codec {
 namespace base {

@@ -15,12 +15,12 @@
 #ifndef ASTC_CODEC_DECODER_INTEGER_SEQUENCE_CODEC_H_
 #define ASTC_CODEC_DECODER_INTEGER_SEQUENCE_CODEC_H_
 
-#include "src/base/bit_stream.h"
-#include "src/base/uint128.h"
-
 #include <array>
 #include <string>
 #include <vector>
+
+#include "src/base/bit_stream.h"
+#include "src/base/uint128.h"
 
 namespace astc_codec {
 

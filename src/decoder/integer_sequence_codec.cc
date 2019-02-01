@@ -13,11 +13,12 @@
 // limitations under the License.
 
 #include "src/decoder/integer_sequence_codec.h"
-#include "src/base/math_utils.h"
-#include "src/base/utils.h"
 
 #include <algorithm>
 #include <iostream>
+
+#include "src/base/math_utils.h"
+#include "src/base/utils.h"
 
 namespace astc_codec {
 

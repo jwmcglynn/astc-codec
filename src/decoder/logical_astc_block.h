@@ -15,15 +15,15 @@
 #ifndef ASTC_CODEC_DECODER_LOGICAL_ASTC_BLOCK_H_
 #define ASTC_CODEC_DECODER_LOGICAL_ASTC_BLOCK_H_
 
+#include <array>
+#include <utility>
+#include <vector>
+
 #include "src/base/optional.h"
 #include "src/decoder/footprint.h"
 #include "src/decoder/intermediate_astc_block.h"
 #include "src/decoder/partition.h"
 #include "src/decoder/physical_astc_block.h"
-
-#include <array>
-#include <utility>
-#include <vector>
 
 namespace astc_codec {
 

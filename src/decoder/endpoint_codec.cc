@@ -13,12 +13,13 @@
 // limitations under the License.
 
 #include "src/decoder/endpoint_codec.h"
-#include "src/decoder/quantization.h"
 
 #include <algorithm>
 #include <array>
 #include <numeric>
 #include <utility>
+
+#include "src/decoder/quantization.h"
 
 namespace astc_codec {
 

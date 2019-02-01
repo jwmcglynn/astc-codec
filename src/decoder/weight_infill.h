@@ -15,9 +15,9 @@
 #ifndef ASTC_CODEC_DECODER_WEIGHT_INFILL_H_
 #define ASTC_CODEC_DECODER_WEIGHT_INFILL_H_
 
-#include "src/decoder/footprint.h"
-
 #include <vector>
+
+#include "src/decoder/footprint.h"
 
 namespace astc_codec {
 

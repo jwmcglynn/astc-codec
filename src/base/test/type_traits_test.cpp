@@ -14,12 +14,12 @@
 
 #include "src/base/type_traits.h"
 
-#include <gtest/gtest.h>
-
 #include <array>
 #include <functional>
 #include <list>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 namespace astc_codec {
 namespace base {
@@ -28,7 +28,7 @@ TEST(TypeTraits, IsCallable) {
   class C;
   C* c = nullptr;
 
-  auto lambda = [c](bool) -> C* { return nullptr; };
+  auto lambda = [c](bool) -> C* { return c; };
 
   static_assert(is_callable_as<void(), void()>::value, "simple function");
   static_assert(is_callable_as<void (&)(), void()>::value,

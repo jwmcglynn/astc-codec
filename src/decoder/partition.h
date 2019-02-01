@@ -15,10 +15,10 @@
 #ifndef ASTC_CODEC_DECODER_PARTITION_H_
 #define ASTC_CODEC_DECODER_PARTITION_H_
 
+#include <vector>
+
 #include "src/base/optional.h"
 #include "src/decoder/footprint.h"
-
-#include <vector>
 
 namespace astc_codec {
 

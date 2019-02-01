@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+#include <vector>
+
 #include "src/decoder/physical_astc_block.h"
 #include "src/base/uint128.h"
 
 #include <gtest/gtest.h>
-
-#include <string>
-#include <vector>
 
 using astc_codec::PhysicalASTCBlock;
 using astc_codec::ColorEndpointMode;

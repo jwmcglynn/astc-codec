@@ -13,12 +13,13 @@
 // limitations under the License.
 
 #include "src/decoder/footprint.h"
-#include "src/base/string_utils.h"
 
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "src/base/string_utils.h"
 
 namespace astc_codec {
 

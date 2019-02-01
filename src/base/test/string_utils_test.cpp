@@ -14,11 +14,11 @@
 
 #include "src/base/string_utils.h"
 
-#include <gtest/gtest.h>
-
 #include <list>
 #include <string>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 namespace astc_codec {
 namespace base {
