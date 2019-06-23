@@ -191,8 +191,8 @@ TEST(PartitionTest, EstimatedPartitionSubsets) {
 // partition with at most a fewer number of subsets
 TEST(PartitionTest, EstimatedPartitionFewerSubsets) {
   std::mt19937 random(0xdeadbeef);
-  auto randUniform = [&random](int max) {
-    std::uniform_int_distribution<> dist(0, max - 1);
+  auto randUniform = [&random](unsigned int max) {
+    std::uniform_int_distribution<unsigned int> dist(0, max - 1);
     return dist(random);
   };
 
@@ -214,10 +214,10 @@ TEST(PartitionTest, EstimatedPartitionFewerSubsets) {
       Footprint::Get12x12()
     }};
 
-  constexpr int kNumTests = 200;
-  for (int i = 0; i < kNumTests; ++i) {
+  constexpr size_t kNumTests = 200;
+  for (size_t i = 0; i < kNumTests; ++i) {
     const auto& footprint = kFootprints[randUniform(kNumFootprints)];
-    const int num_parts = 2 + randUniform(3);
+    const unsigned int num_parts = 2 + randUniform(3);
     Partition partition = {
       footprint,
       num_parts,

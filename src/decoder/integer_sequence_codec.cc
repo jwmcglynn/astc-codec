@@ -35,7 +35,7 @@ namespace {
 // For simplicity, we have stored a look-up table here so that we don't need
 // to implement the decoding logic. Similarly, seven bits are used to decode
 // three quints (since 5^3 = 125 < 128).
-static const std::array<int, 5> kTritEncodings[256] = {
+static const std::array<unsigned int, 5> kTritEncodings[256] = {
   {{ 0, 0, 0, 0, 0 }}, {{ 1, 0, 0, 0, 0 }}, {{ 2, 0, 0, 0, 0 }},
   {{ 0, 0, 2, 0, 0 }}, {{ 0, 1, 0, 0, 0 }}, {{ 1, 1, 0, 0, 0 }},
   {{ 2, 1, 0, 0, 0 }}, {{ 1, 0, 2, 0, 0 }}, {{ 0, 2, 0, 0, 0 }},
@@ -124,7 +124,7 @@ static const std::array<int, 5> kTritEncodings[256] = {
   {{ 2, 1, 2, 2, 2 }}
 };
 
-static const std::array<int, 3> kQuintEncodings[128] = {
+static const std::array<unsigned int, 3> kQuintEncodings[128] = {
   {{ 0, 0, 0 }}, {{ 1, 0, 0 }}, {{ 2, 0, 0 }}, {{ 3, 0, 0 }}, {{ 4, 0, 0 }},
   {{ 0, 4, 0 }}, {{ 4, 4, 0 }}, {{ 4, 4, 4 }}, {{ 0, 1, 0 }}, {{ 1, 1, 0 }},
   {{ 2, 1, 0 }}, {{ 3, 1, 0 }}, {{ 4, 1, 0 }}, {{ 1, 4, 0 }}, {{ 4, 4, 1 }},
@@ -157,20 +157,20 @@ static const std::array<int, 3> kQuintEncodings[128] = {
 // Bounded Integer Sequence Encoding. These are the numbers between 1 and 255
 // that can be represented exactly as a number in the ranges
 // [0, 2^k), [0, 3 * 2^k), and [0, 5 * 2^k).
-static const std::array<int, kNumPossibleRanges> kMaxRanges = []() {
-  std::array<int, kNumPossibleRanges> ranges;
+static const std::array<unsigned int, kNumPossibleRanges> kMaxRanges = []() {
+  std::array<unsigned int, kNumPossibleRanges> ranges;
 
   // Initialize the table that we need for determining value encodings.
   auto next_max_range = ranges.begin();
-  auto add_val = [&next_max_range](int val) {
-    if (val <= 0 || (1 << kLog2MaxRangeForBits) <= val) {
+  auto add_val = [&next_max_range](unsigned int val) {
+    if (val == 0 || (1 << kLog2MaxRangeForBits) <= val) {
       return;
     }
 
     *(next_max_range++) = val;
   };
 
-  for (int i = 0; i <= kLog2MaxRangeForBits; ++i) {
+  for (unsigned int i = 0; i <= kLog2MaxRangeForBits; ++i) {
     add_val(3 * (1 << i) - 1);
     add_val(5 * (1 << i) - 1);
     add_val((1 << i) - 1);
@@ -191,12 +191,12 @@ inline constexpr bool IsPow2(T x) { return (x & (x - 1)) == 0; }
 
 // For the ISE block encoding, these arrays determine how many bits are
 // used after each value to store the interleaved quint/trit block.
-const int kInterleavedQuintBits[3] = { 3, 2, 2 };
-const int kInterleavedTritBits[5] = { 2, 2, 1, 2, 1 };
+const unsigned int kInterleavedQuintBits[3] = { 3, 2, 2 };
+const unsigned int kInterleavedTritBits[5] = { 2, 2, 1, 2, 1 };
 
 // Some template meta programming to get around the fact that MSVC
 // will not allow  (ValRange == 5) ? 3 : 5 as a template parameter
-template<int ValRange>
+template<unsigned int ValRange>
 struct DecodeBlockSize {
   enum { value =  (ValRange == 5 ? 3 : 5) };
 };
@@ -206,18 +206,18 @@ struct DecodeBlockSize {
 // expected to be either 3 or 5 depending on whether or not we're encoding trits
 // or quints respectively. In other words, it is the remaining factor in whether
 // the passed blocks contain encoded values of the form 3*2^k or 5*2^k.
-template<int ValRange>
-std::array<int, /* kNumVals = */ DecodeBlockSize<ValRange>::value> DecodeISEBlock(
-    uint64_t block_bits, int num_bits) {
+template<unsigned int ValRange>
+std::array<unsigned int, /* kNumVals = */ DecodeBlockSize<ValRange>::value> DecodeISEBlock(
+    uint64_t block_bits, unsigned int num_bits) {
   static_assert(ValRange == 3 || ValRange == 5,
                 "We only know about trits and quints");
 
   // We either have three quints or five trits
-  constexpr const int kNumVals = (ValRange == 5) ? 3 : 5;
+  constexpr const unsigned int kNumVals = (ValRange == 5) ? 3 : 5;
 
   // Depending on whether or not we're using quints or trits will determine
   // the positions of the interleaved bits in the encoded block.
-  constexpr const int* const kInterleavedBits =
+  constexpr const unsigned int* const kInterleavedBits =
       (ValRange == 5) ? kInterleavedQuintBits : kInterleavedTritBits;
 
   // Set up the bits for reading
@@ -227,7 +227,7 @@ std::array<int, /* kNumVals = */ DecodeBlockSize<ValRange>::value> DecodeISEBloc
   std::array<int, kNumVals> m;
   uint64_t encoded = 0;
   uint32_t encoded_bits_read = 0;
-  for (int i = 0; i < kNumVals; ++i) {
+  for (unsigned int i = 0; i < kNumVals; ++i) {
     {
       uint64_t bits = 0;
       const bool result = block_bit_src.GetBits(num_bits, &bits);
@@ -249,11 +249,11 @@ std::array<int, /* kNumVals = */ DecodeBlockSize<ValRange>::value> DecodeISEBloc
   assert(ValRange != 3 || encoded < 256);
   assert(ValRange != 5 || encoded < 128);
 
-  const int* const kEncodings = (ValRange == 5) ?
+  const unsigned int* const kEncodings = (ValRange == 5) ?
       kQuintEncodings[encoded].data() : kTritEncodings[encoded].data();
 
-  std::array<int, kNumVals> result;
-  for (int i = 0; i < kNumVals; ++i) {
+  std::array<unsigned int, kNumVals> result;
+  for (unsigned int i = 0; i < kNumVals; ++i) {
     assert(m[i] < 1 << num_bits);
     result[i] = kEncodings[i] << num_bits | m[i];
   }
@@ -265,21 +265,21 @@ std::array<int, /* kNumVals = */ DecodeBlockSize<ValRange>::value> DecodeISEBloc
 // expected to be either 3 or 5 depending on whether or not we're encoding trits
 // or quints respectively. In other words, it is the remaining factor in whether
 // the passed blocks contain encoded values of the form 3*2^k or 5*2^k.
-template <int ValRange>
-void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
+template <unsigned int ValRange>
+void EncodeISEBlock(const std::vector<unsigned int>& vals, unsigned int bits_per_val,
                     base::BitStream<base::UInt128>* bit_sink) {
   static_assert(ValRange == 3 || ValRange == 5,
                 "We only know about trits and quints");
 
   // We either have three quints or five trits
-  constexpr const size_t kNumVals = (ValRange == 5) ? 3 : 5;
+  constexpr const unsigned int kNumVals = (ValRange == 5) ? 3 : 5;
 
   // Three quints in seven bits or five trits in eight bits
-  constexpr const int kNumEncodedBitsPerBlock = (ValRange == 5) ? 7 : 8;
+  constexpr const unsigned int kNumEncodedBitsPerBlock = (ValRange == 5) ? 7 : 8;
 
   // Depending on whether or not we're using quints or trits will determine
   // the positions of the interleaved bits in the encoding
-  constexpr const int* const kInterleavedBits =
+  constexpr const unsigned int* const kInterleavedBits =
       (ValRange == 5) ? kInterleavedQuintBits : kInterleavedTritBits;
 
   // ISE blocks can only have up to a specific number of values...
@@ -287,8 +287,8 @@ void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
 
   // Split up into bits and non bits. Non bits are used to find the quint/trit
   // encoding that we need.
-  std::array<int, kNumVals> non_bits = {{ 0 }};
-  std::array<int, kNumVals> bits = {{ 0 }};
+  std::array<unsigned int, kNumVals> non_bits = {{ 0 }};
+  std::array<unsigned int, kNumVals> bits = {{ 0 }};
   for (size_t i = 0; i < vals.size(); ++i) {
     bits[i] = vals[i] & ((1 << bits_per_val) - 1);
     non_bits[i] = vals[i] >> bits_per_val;
@@ -300,12 +300,12 @@ void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
   const size_t total_num_bits =
       ((vals.size() * kNumEncodedBitsPerBlock + kNumVals - 1) / kNumVals) +
       vals.size() * bits_per_val;
-  int bits_added = 0;
+  unsigned int bits_added = 0;
 
   // The number of bits used for the quint/trit encoding is necessary to know
   // in order to properly select the encoding we need to represent.
-  int num_encoded_bits = 0;
-  for (int i = 0; i < kNumVals; ++i) {
+  unsigned int num_encoded_bits = 0;
+  for (size_t i = 0; i < kNumVals; ++i) {
     bits_added += bits_per_val;
     if (bits_added >= total_num_bits) {
       break;
@@ -324,8 +324,9 @@ void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
   // of the quint/trit encoding patterns, or just invert the decoding logic.
   // Here we go from the end backwards because it makes our tests are more
   // deterministic.
-  int non_bit_encoding = -1;
-  for (int j = (1 << num_encoded_bits) - 1; j >= 0; --j) {
+  bool has_non_bit_encoding = 0;
+  unsigned int non_bit_encoding = 0;
+  for (unsigned int j = (1u << num_encoded_bits) - 1; j >= 0; --j) {
     bool matches = true;
 
     // We don't need to match all trits here, just the ones that correspond
@@ -339,12 +340,13 @@ void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
     }
 
     if (matches) {
+      has_non_bit_encoding = true;
       non_bit_encoding = j;
       break;
     }
   }
 
-  assert(non_bit_encoding >= 0);
+  assert(has_non_bit_encoding);
 
   // Now pack the bits into the block
   for (size_t i = 0; i < vals.size() && i < kNumVals; ++i) {
@@ -355,8 +357,8 @@ void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
     }
 
     // Now add the interleaved bits from the quint/trit
-    int num_int_bits = kInterleavedBits[i];
-    int int_bits = non_bit_encoding & ((1 << num_int_bits) - 1);
+    unsigned int num_int_bits = kInterleavedBits[i];
+    unsigned int int_bits = non_bit_encoding & ((1 << num_int_bits) - 1);
     if (bits_added + num_int_bits <= total_num_bits) {
       bit_sink->PutBits(int_bits, num_int_bits);
       bits_added += num_int_bits;
@@ -365,7 +367,7 @@ void EncodeISEBlock(const std::vector<int>& vals, int bits_per_val,
   }
 }
 
-inline void CHECK_COUNTS(int trits, int quints) {
+inline void CHECK_COUNTS(unsigned int trits, unsigned int quints) {
   assert(trits == 0 || quints == 0);   // Either trits or quints
   assert(trits == 0 || trits == 1);    // At most one trit
   assert(quints == 0 || quints == 1);  // At most one quint
@@ -375,16 +377,17 @@ inline void CHECK_COUNTS(int trits, int quints) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::array<int, kNumPossibleRanges>::const_iterator ISERangeBegin() {
+std::array<unsigned int, kNumPossibleRanges>::const_iterator ISERangeBegin() {
   return kMaxRanges.cbegin();
 }
 
-std::array<int, kNumPossibleRanges>::const_iterator ISERangeEnd() {
+std::array<unsigned int, kNumPossibleRanges>::const_iterator ISERangeEnd() {
   return kMaxRanges.cend();
 }
 
-void IntegerSequenceCodec::GetCountsForRange(int range, int* const trits,
-                                             int* const quints,
+void IntegerSequenceCodec::GetCountsForRange(unsigned int range,
+                                             unsigned int* const trits,
+                                             unsigned int* const quints,
                                              unsigned int* const bits) {
   // Make sure the passed pointers are valid
   assert(trits != nullptr);
@@ -401,7 +404,7 @@ void IntegerSequenceCodec::GetCountsForRange(int range, int* const trits,
   *quints = 0;
 
   // Search through the numbers of the form 2^n, 3 * 2^n and 5 * 2^n
-  const int max_vals_for_range =
+  const unsigned int max_vals_for_range =
       *std::lower_bound(kMaxRanges.begin(), kMaxRanges.end(), range) + 1;
 
   // Make sure we found something
@@ -437,30 +440,33 @@ void IntegerSequenceCodec::GetCountsForRange(int range, int* const trits,
 
 // Returns the overall bit count for a range of val_count values encoded
 // using the specified number of trits, quints and straight bits (respectively)
-int IntegerSequenceCodec::GetBitCount(int num_vals, int trits, int quints,
-                                      unsigned int bits) {
+unsigned int IntegerSequenceCodec::GetBitCount(unsigned int num_vals,
+                                               unsigned int trits,
+                                               unsigned int quints,
+                                               unsigned int bits) {
   CHECK_COUNTS(trits, quints);
 
   // See section C.2.22 for the formula used here.
-  const int trit_bit_count = ((num_vals * 8 * trits) + 4) / 5;
-  const int quint_bit_count = ((num_vals * 7 * quints) + 2) / 3;
-  const int base_bit_count = num_vals * bits;
+  const unsigned int trit_bit_count = ((num_vals * 8 * trits) + 4) / 5;
+  const unsigned int quint_bit_count = ((num_vals * 7 * quints) + 2) / 3;
+  const unsigned int base_bit_count = num_vals * bits;
   return trit_bit_count + quint_bit_count + base_bit_count;
 }
 
-IntegerSequenceCodec::IntegerSequenceCodec(int range) {
-  int trits, quints;
-  unsigned int bits;
+IntegerSequenceCodec::IntegerSequenceCodec(unsigned int range) {
+  unsigned int trits, quints, bits;
   GetCountsForRange(range, &trits, &quints, &bits);
   InitializeWithCounts(trits, quints, bits);
 }
 
-IntegerSequenceCodec::IntegerSequenceCodec(int trits, int quints,
+IntegerSequenceCodec::IntegerSequenceCodec(unsigned int trits,
+                                           unsigned int quints,
                                            unsigned int bits) {
   InitializeWithCounts(trits, quints, bits);
 }
 
-void IntegerSequenceCodec::InitializeWithCounts(int trits, int quints,
+void IntegerSequenceCodec::InitializeWithCounts(unsigned int trits,
+                                                unsigned int quints,
                                                 unsigned int bits) {
   CHECK_COUNTS(trits, quints);
 
@@ -487,20 +493,22 @@ int IntegerSequenceCodec::EncodedBlockSize() const {
       + num_vals * bits_;
 }
 
-std::vector<int> IntegerSequenceDecoder::Decode(
-    int num_vals, base::BitStream<base::UInt128> *bit_src) const {
-  int trits = (encoding_ == kTritEncoding) ? 1 : 0;
-  int quints = (encoding_ == kQuintEncoding) ? 1 : 0;
-  const int total_num_bits = GetBitCount(num_vals, trits, quints, bits_);
-  const int bits_per_block = EncodedBlockSize();
+std::vector<unsigned int> IntegerSequenceDecoder::Decode(
+    unsigned int num_vals, base::BitStream<base::UInt128>* bit_src) const {
+  const unsigned int trits = (encoding_ == kTritEncoding) ? 1 : 0;
+  const unsigned int quints = (encoding_ == kQuintEncoding) ? 1 : 0;
+  const unsigned int total_num_bits =
+      GetBitCount(num_vals, trits, quints, bits_);
+  const unsigned int bits_per_block = EncodedBlockSize();
   assert(bits_per_block < 64);
 
-  int bits_left = total_num_bits;
-  std::vector<int> result;
+  unsigned int bits_left = total_num_bits;
+  std::vector<unsigned int> result;
   while (bits_left > 0) {
+    const unsigned int current_size = std::min(bits_left, bits_per_block);
     uint64_t block_bits;
     {
-      const bool result = bit_src->GetBits(std::min(bits_left, bits_per_block), &block_bits);
+      const bool result = bit_src->GetBits(current_size, &block_bits);
       assert(result);
     }
 
@@ -518,11 +526,11 @@ std::vector<int> IntegerSequenceDecoder::Decode(
       break;
 
       case kBitEncoding:
-        result.push_back(static_cast<int>(block_bits));
+        result.push_back(static_cast<unsigned int>(block_bits));
         break;
     }
 
-    bits_left -= bits_per_block;
+    bits_left -= current_size;
   }
 
   // Resize result to only contain as many values as requested
@@ -543,8 +551,8 @@ void IntegerSequenceEncoder::Encode(base::BitStream<base::UInt128>* bit_sink) co
   while (next_val != vals_.end()) {
     switch (encoding_) {
       case kTritEncoding: {
-        std::vector<int> trit_vals;
-        for (int i = 0; i < 5; ++i) {
+        std::vector<unsigned int> trit_vals;
+        for (unsigned int i = 0; i < 5; ++i) {
           if (next_val != vals_.end()) {
             trit_vals.push_back(*next_val);
             ++next_val;
@@ -556,8 +564,8 @@ void IntegerSequenceEncoder::Encode(base::BitStream<base::UInt128>* bit_sink) co
       break;
 
       case kQuintEncoding: {
-        std::vector<int> quint_vals;
-        for (size_t i = 0; i < 3; ++i) {
+        std::vector<unsigned int> quint_vals;
+        for (unsigned int i = 0; i < 3; ++i) {
           if (next_val != vals_.end()) {
             quint_vals.push_back(*next_val);
             ++next_val;

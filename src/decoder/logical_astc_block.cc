@@ -96,9 +96,9 @@ LogicalASTCBlock::LogicalASTCBlock(const Footprint& footprint,
 
 void LogicalASTCBlock::CalculateWeights(const Footprint& footprint,
                                         const IntermediateBlockData& block) {
-  const int grid_size_x = block.weight_grid_dim_x;
-  const int grid_size_y = block.weight_grid_dim_y;
-  const int weight_grid_size = grid_size_x * grid_size_y;
+  const unsigned int grid_size_x = block.weight_grid_dim_x;
+  const unsigned int grid_size_y = block.weight_grid_dim_y;
+  const unsigned int weight_grid_size = grid_size_x * grid_size_y;
 
   // Either we have a dual plane and we have twice as many weights as
   // specified or we don't
@@ -106,24 +106,24 @@ void LogicalASTCBlock::CalculateWeights(const Footprint& footprint,
         ? block.weights.size() == weight_grid_size * 2
         : block.weights.size() == weight_grid_size);
 
-  std::vector<int> unquantized;
+  std::vector<unsigned int> unquantized;
   unquantized.reserve(weight_grid_size);
 
   // According to C.2.16, if we have dual-plane weights, then we have two
   // weights per texel -- one adjacent to the other. Hence, we have to skip
   // some when we decode the separate weight values.
-  const int weight_frequency = (block.dual_plane_channel) ? 2 : 1;
-  const int weight_range = block.weight_range;
+  const unsigned int weight_frequency = (block.dual_plane_channel) ? 2 : 1;
+  const unsigned int weight_range = block.weight_range;
 
-  for (int i = 0; i < weight_grid_size; ++i) {
-    const int weight = block.weights[i * weight_frequency];
+  for (unsigned int i = 0; i < weight_grid_size; ++i) {
+    const unsigned int weight = block.weights[i * weight_frequency];
     unquantized.push_back(UnquantizeWeightFromRange(weight, weight_range));
   }
   weights_ = InfillWeights(unquantized, footprint, grid_size_x, grid_size_y);
 
   if (block.dual_plane_channel) {
     SetDualPlaneChannel(block.dual_plane_channel.value());
-    for (int i = 0; i < weight_grid_size; ++i) {
+    for (unsigned int i = 0; i < weight_grid_size; ++i) {
       const int weight = block.weights[i * weight_frequency + 1];
       unquantized[i] = UnquantizeWeightFromRange(weight, weight_range);
     }
@@ -134,16 +134,16 @@ void LogicalASTCBlock::CalculateWeights(const Footprint& footprint,
 
 void LogicalASTCBlock::CalculateWeights(const Footprint& footprint,
                                         const VoidExtentData&) {
-  weights_ = std::vector<int>(footprint.NumPixels(), 0);
+  weights_ = std::vector<unsigned int>(footprint.NumPixels(), 0);
 }
 
-void LogicalASTCBlock::SetWeightAt(int x, int y, int weight) {
+void LogicalASTCBlock::SetWeightAt(unsigned int x, unsigned int y, int weight) {
   assert(weight >= 0);
   assert(weight <= 64);
   weights_.at(y * GetFootprint().Width() + x) = weight;
 }
 
-int LogicalASTCBlock::WeightAt(int x, int y) const {
+int LogicalASTCBlock::WeightAt(unsigned int x, unsigned int y) const {
   return weights_.at(y * GetFootprint().Width() + x);
 }
 
@@ -193,13 +193,13 @@ void LogicalASTCBlock::SetDualPlaneChannel(int channel) {
   }
 }
 
-RgbaColor LogicalASTCBlock::ColorAt(int x, int y) const {
+RgbaColor LogicalASTCBlock::ColorAt(unsigned int x, unsigned int y) const {
   const auto footprint = GetFootprint();
-  assert(x >= 0);  assert(x < footprint.Width());
-  assert(y >= 0);  assert(y < footprint.Height());
+  assert(x < footprint.Width());
+  assert(y < footprint.Height());
 
-  const int texel_idx = y * footprint.Width() + x;
-  const int part = partition_.assignment[texel_idx];
+  const unsigned int texel_idx = y * footprint.Width() + x;
+  const unsigned int part = partition_.assignment[texel_idx];
   const auto& endpoints = endpoints_[part];
 
   RgbaColor result;
@@ -233,7 +233,8 @@ void LogicalASTCBlock::SetPartition(const Partition& p) {
   endpoints_.resize(p.num_parts);
 }
 
-void LogicalASTCBlock::SetEndpoints(const EndpointPair& eps, int subset) {
+void LogicalASTCBlock::SetEndpoints(const EndpointPair& eps,
+                                    unsigned int subset) {
   assert(subset < partition_.num_parts);
   assert(subset < endpoints_.size());
 

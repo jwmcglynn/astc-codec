@@ -50,15 +50,15 @@ enum class ColorEndpointMode {
 };
 
 // Returns the class for the given mode as defined in Section C.2.11.
-constexpr int EndpointModeClass(ColorEndpointMode mode) {
-  return static_cast<int>(mode) / 4;
+constexpr unsigned int EndpointModeClass(ColorEndpointMode mode) {
+  return static_cast<unsigned int>(mode) / 4;
 }
 
 // Returns the number of encoded color values for the given endpoint mode. The
 // number of encoded color values and their range determines the size of the
 // color data in a physical ASTC block. This information is taken from
 // Section C.2.17 of the ASTC specification.
-constexpr int NumColorValuesForEndpointMode(ColorEndpointMode mode) {
+constexpr unsigned int NumColorValuesForEndpointMode(ColorEndpointMode mode) {
   return (EndpointModeClass(mode) + 1) * 2;
 }
 

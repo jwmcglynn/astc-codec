@@ -31,34 +31,38 @@ namespace astc_codec {
 // The minimum possible range for a pair of endpoints. If endpoints are
 // quantized to something smaller than this, then it would constitute an
 // illegal ASTC encoding.
-constexpr int kEndpointRangeMinValue = 5;
+constexpr unsigned int kEndpointRangeMinValue = 5;
 
 // The maximum possible range for a weight value. If weights are quantized to
 // something larger than this, then it would constitute an illegal ASTC
 // encoding.
-constexpr int kWeightRangeMaxValue = 31;
+constexpr unsigned int kWeightRangeMaxValue = 31;
 
 // Quantizes a value in the range [0, 255] to [0, |range|]. The quantized values
 // have no correlation to the input values, and there should be no implicit
 // assumptions made about their ordering. Valid values of |range_max_value| are
 // in the interval [5, 255]
-int QuantizeCEValueToRange(int value, int range_max_value);
+unsigned int QuantizeCEValueToRange(unsigned int value,
+                                    unsigned int range_max_value);
 
 // Unquantizes a value in the range [0, |range|] to [0, 255]. Performs the
 // inverse procedure of QuantizeValueToRange. Valid values of |range_max_value|
 // are in the interval [5, 255]
-int UnquantizeCEValueFromRange(int value, int range_max_value);
+unsigned int UnquantizeCEValueFromRange(unsigned int value,
+                                        unsigned int range_max_value);
 
 // Quantizes a weight in the range [0, 64] to [0, |range_max_value|]. The
 // quantized values have no correlation to the input values, and there should
 // be no implicit assumptions made about their ordering. Valid values of
 // |range_max_value| are in the interval [1, 31]
-int QuantizeWeightToRange(int weight, int range_max_value);
+unsigned int QuantizeWeightToRange(unsigned int weight,
+                                   unsigned int range_max_value);
 
 // Unquantizes a weight in the range [0, |range_max_value|] to [0, 64]. Performs
 // the inverse procedure of QuantizeWeightToRange. Valid values of
 // |range_max_value| are in the interval [1, 31]
-int UnquantizeWeightFromRange(int weight, int range_max_value);
+unsigned int UnquantizeWeightFromRange(unsigned int weight,
+                                       unsigned int range_max_value);
 
 }  // namespace astc_codec
 

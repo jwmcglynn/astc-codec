@@ -54,8 +54,8 @@ class LogicalASTCBlock {
   // Returns the unquantized and infilled weight in the range [0, 64] for the
   // given texel location. Assumes that the block is a single-plane block,
   // meaning that weights are used equally across all channels.
-  void SetWeightAt(int x, int y, int weight);
-  int WeightAt(int x, int y) const;
+  void SetWeightAt(unsigned int x, unsigned int y, int weight);
+  int WeightAt(unsigned int x, unsigned int y) const;
 
   // Returns the unquantized and infilled weight in the range [0, 64] for the
   // given channel at the given texel location. If the block does not have a
@@ -67,15 +67,16 @@ class LogicalASTCBlock {
   // Returns the color as it would be in the given pixel coordinates of the
   // block. Fails if the coordinates are outside of the range of the block
   // footprint
-  RgbaColor ColorAt(int x, int y) const;
+  RgbaColor ColorAt(unsigned int x, unsigned int y) const;
 
   // Sets the current partition for the block. |p|'s footprint must match the
   // return value of GetFootprint() or else this call will fail.
   void SetPartition(const Partition& p);
 
   // Sets the endpoints for the given subset.
-  void SetEndpoints(const EndpointPair& eps, int subset);
-  void SetEndpoints(const Endpoint& ep1, const Endpoint& ep2, int subset) {
+  void SetEndpoints(const EndpointPair& eps, unsigned int subset);
+  void SetEndpoints(const Endpoint& ep1, const Endpoint& ep2,
+                    unsigned int subset) {
     SetEndpoints(std::make_pair(ep1, ep2), subset);
   }
 
@@ -90,7 +91,7 @@ class LogicalASTCBlock {
   std::vector<EndpointPair> endpoints_;
 
   // Weights are stored as values in the interval [0, 64].
-  std::vector<int> weights_;
+  std::vector<unsigned int> weights_;
 
   // The partition information for this block. This determines the
   // appropriate subsets that each pixel should belong to.
@@ -101,7 +102,7 @@ class LogicalASTCBlock {
   // we need to know both the channel and the weights associated with it.
   struct DualPlaneData {
     int channel;
-    std::vector<int> weights;
+    std::vector<unsigned int> weights;
   };
 
   // The dual-plane data is optional from a logical representation of the block.

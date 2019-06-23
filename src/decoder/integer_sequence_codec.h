@@ -40,8 +40,8 @@ constexpr unsigned int kLog2MaxRangeForBits = 8;
 constexpr unsigned int kNumPossibleRanges = 3 * kLog2MaxRangeForBits - 3;
 
 // Returns an iterator through the available ASTC ranges.
-std::array<int, kNumPossibleRanges>::const_iterator ISERangeBegin();
-std::array<int, kNumPossibleRanges>::const_iterator ISERangeEnd();
+std::array<unsigned int, kNumPossibleRanges>::const_iterator ISERangeBegin();
+std::array<unsigned int, kNumPossibleRanges>::const_iterator ISERangeEnd();
 
 // Base class for ASTC integer sequence encoders and decoders. These codecs
 // operate on sequences of integers and produce bit patterns that pack the
@@ -63,29 +63,30 @@ class IntegerSequenceCodec {
   // [0, range]. This is used to determine the layout of ISE encoded bit
   // streams. The returned array holds the number of trits, quints, and bits
   // respectively. range is expected to be within the interval [1, 5242879]
-  static void GetCountsForRange(int range, int* trits, int* quints,
-                                unsigned int* bits);
+  static void GetCountsForRange(unsigned int range, unsigned int* trits,
+                                unsigned int* quints, unsigned int* bits);
 
   // Returns the number of bits needed to encode the given number of values with
   // respect to the number of trits, quints, and bits specified in ise_counts
   // (in that order). It is expected that either trits or quints can be
   // nonzero, but not both, and neither can be larger than one. Anything else is
   // undefined.
-  static int GetBitCount(int num_vals, int trits, int quints,
-                         unsigned int bits);
+  static unsigned int GetBitCount(unsigned int num_vals, unsigned int trits,
+                                  unsigned int quints, unsigned int bits);
 
   // Convenience function that returns the number of bits needed to encoded
   // num_vals within the range [0, range] (inclusive).
-  static inline int GetBitCountForRange(int num_vals, int range) {
-    int trits, quints;
-    unsigned int bits;
+  static inline unsigned int GetBitCountForRange(unsigned int num_vals,
+                                                 unsigned int range) {
+    unsigned int trits, quints, bits;
     GetCountsForRange(range, &trits, &quints, &bits);
     return GetBitCount(num_vals, trits, quints, bits);
   }
 
  protected:
-  explicit IntegerSequenceCodec(int range);
-  IntegerSequenceCodec(int trits, int quints, unsigned int bits);
+  explicit IntegerSequenceCodec(unsigned int range);
+  IntegerSequenceCodec(unsigned int trits, unsigned int quints,
+                       unsigned int bits);
 
   // The encoding mode -- since having trits and quints are mutually exclusive,
   // we can store the encoding we decide on in this enum.
@@ -109,7 +110,8 @@ class IntegerSequenceCodec {
 
  private:
   // Determines the encoding mode.
-  void InitializeWithCounts(int trits, int quints, unsigned int bits);
+  void InitializeWithCounts(unsigned int trits, unsigned int quints,
+                            unsigned int bits);
 };
 
 // The integer sequence decoder. The decoder only remembers the given encoding
@@ -117,20 +119,21 @@ class IntegerSequenceCodec {
 class IntegerSequenceDecoder : public IntegerSequenceCodec {
  public:
   // Creates a decoder that decodes values within [0, range] (inclusive).
-  explicit IntegerSequenceDecoder(int range)
-      : IntegerSequenceCodec(range) { }
+  explicit IntegerSequenceDecoder(unsigned int range)
+      : IntegerSequenceCodec(range) {}
 
   // Creates a decoder based on the number of trits, quints, and bits expected
   // in the bit stream passed to Decode.
-  IntegerSequenceDecoder(int trits, int quints, unsigned int bits)
+  IntegerSequenceDecoder(unsigned int trits, unsigned int quints,
+                         unsigned int bits)
       : IntegerSequenceCodec(trits, quints, bits) {}
 
   // Decodes num_vals from the bit_src. The number of bits read is dependent
   // on the number of bits required to encode num_vals based on the calculation
   // provided in Section C.2.22 of the ASTC specification. The return value
   // always contains exactly num_vals.
-  std::vector<int> Decode(int num_vals,
-                          base::BitStream<base::UInt128>* bit_src) const;
+  std::vector<unsigned int> Decode(
+      unsigned int num_vals, base::BitStream<base::UInt128>* bit_src) const;
 };
 
 // The integer sequence encoder. The encoder accepts values one by one and
@@ -139,20 +142,22 @@ class IntegerSequenceDecoder : public IntegerSequenceCodec {
 class IntegerSequenceEncoder : public IntegerSequenceCodec {
  public:
   // Creates an encoder that encodes values within [0, range] (inclusive).
-  explicit IntegerSequenceEncoder(int range)
-      : IntegerSequenceCodec(range) { }
+  explicit IntegerSequenceEncoder(unsigned int range)
+      : IntegerSequenceCodec(range) {}
 
   // Creates an encoder based on the number of trits, quints, and bits for
   // the bit stream produced by Encode.
-  IntegerSequenceEncoder(int trits, int quints, unsigned int bits)
+  IntegerSequenceEncoder(unsigned int trits, unsigned int quints,
+                         unsigned int bits)
       : IntegerSequenceCodec(trits, quints, bits) {}
 
   // Adds a value to the encoding sequence.
-  void AddValue(int val) {
+  void AddValue(unsigned int val) {
     // Make sure it's within bounds
-    assert(encoding_ != EncodingMode::kTritEncoding || val < 3 * (1 << bits_));
-    assert(encoding_ != EncodingMode::kQuintEncoding || val < 5 * (1 << bits_));
-    assert(encoding_ != EncodingMode::kBitEncoding || val < (1 << bits_));
+    assert(encoding_ != EncodingMode::kTritEncoding || val < 3 * (1u << bits_));
+    assert(encoding_ != EncodingMode::kQuintEncoding ||
+           val < 5 * (1u << bits_));
+    assert(encoding_ != EncodingMode::kBitEncoding || val < (1u << bits_));
     vals_.push_back(val);
   }
 
@@ -164,7 +169,7 @@ class IntegerSequenceEncoder : public IntegerSequenceCodec {
   void Reset() { vals_.clear(); }
 
  private:
-  std::vector<int> vals_;
+  std::vector<unsigned int> vals_;
 };
 
 }  // namespace astc_codec

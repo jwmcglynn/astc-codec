@@ -48,18 +48,18 @@ TEST(ASTCWeightInfillTest, TestGetBitCount) {
 
 // Make sure that we bilerp our weights properly
 TEST(ASTCWeightInfillTest, TestInfillBilerp) {
-  std::vector<int> weights = InfillWeights(
-      {{ 1, 3, 5, 3, 5, 7, 5, 7, 9 }}, Footprint::Get5x5(), 3, 3);
+  std::vector<unsigned int> weights =
+      InfillWeights({{1, 3, 5, 3, 5, 7, 5, 7, 9}}, Footprint::Get5x5(), 3, 3);
 
-  std::vector<int> expected_weights = {
-      1, 2, 3, 4, 5,
-      2, 3, 4, 5, 6,
-      3, 4, 5, 6, 7,
-      4, 5, 6, 7, 8,
-      5, 6, 7, 8, 9 };
+  std::vector<unsigned int> expected_weights = {
+      1, 2, 3, 4, 5,   //
+      2, 3, 4, 5, 6,   //
+      3, 4, 5, 6, 7,   //
+      4, 5, 6, 7, 8,   //
+      5, 6, 7, 8, 9};  //
 
   ASSERT_EQ(weights.size(), expected_weights.size());
-  for (int i = 0; i < weights.size(); ++i) {
+  for (size_t i = 0; i < weights.size(); ++i) {
     EXPECT_EQ(weights[i], expected_weights[i]);
   }
 }

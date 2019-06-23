@@ -27,11 +27,11 @@ namespace {
 
 // Make sure that we never exceed the maximum range that we pass in.
 TEST(QuantizationTest, TestQuantizeMaxRange) {
-  for (int i = kEndpointRangeMinValue; i < 256; ++i) {
+  for (unsigned int i = kEndpointRangeMinValue; i < 256; ++i) {
     EXPECT_LE(QuantizeCEValueToRange(255, i), i);
   }
 
-  for (int i = 1; i < kWeightRangeMaxValue; ++i) {
+  for (unsigned int i = 1; i < kWeightRangeMaxValue; ++i) {
     EXPECT_LE(QuantizeWeightToRange(64, i), i);
   }
 }
@@ -40,17 +40,17 @@ TEST(QuantizationTest, TestQuantizeMaxRange) {
 // what we started with.
 TEST(QuantizationTest, TestReversibility) {
   for (auto itr = ISERangeBegin(); itr != ISERangeEnd(); itr++) {
-    const int range = *itr;
+    const unsigned int range = *itr;
     if (range <= kWeightRangeMaxValue) {
-      for (int j = 0; j <= range; ++j) {
-        const int q = UnquantizeWeightFromRange(j, range);
+      for (unsigned int j = 0; j <= range; ++j) {
+        const unsigned int q = UnquantizeWeightFromRange(j, range);
         EXPECT_EQ(QuantizeWeightToRange(q, range), j);
       }
     }
 
     if (range >= kEndpointRangeMinValue) {
-      for (int j = 0; j <= range; ++j) {
-        const int q = UnquantizeCEValueFromRange(j, range);
+      for (unsigned int j = 0; j <= range; ++j) {
+        const unsigned int q = UnquantizeCEValueFromRange(j, range);
         EXPECT_EQ(QuantizeCEValueToRange(q, range), j);
       }
     }
@@ -61,7 +61,7 @@ TEST(QuantizationTest, TestReversibility) {
 // proper range
 TEST(QuantizationTest, TestQuantizationRange) {
   for (auto itr = ISERangeBegin(); itr != ISERangeEnd(); itr++) {
-    const int range = *itr;
+    const unsigned int range = *itr;
     if (range >= kEndpointRangeMinValue) {
       EXPECT_LE(QuantizeCEValueToRange(0, range), range);
       EXPECT_LE(QuantizeCEValueToRange(4, range), range);
@@ -101,11 +101,11 @@ TEST(QuantizationTest, TestUnquantizationRange) {
 // does not exceed the desired range.
 TEST(QuantizationTest, TestUpperBoundRanges) {
   auto expected_range_itr = ISERangeBegin();
-  for (int desired_range = 1; desired_range < 256; ++desired_range) {
+  for (unsigned int desired_range = 1; desired_range < 256; ++desired_range) {
     if (desired_range == *(expected_range_itr + 1)) {
       ++expected_range_itr;
     }
-    const int expected_range = *expected_range_itr;
+    const unsigned int expected_range = *expected_range_itr;
     ASSERT_LE(expected_range, desired_range);
 
     if (desired_range >= kEndpointRangeMinValue) {
@@ -146,7 +146,7 @@ TEST(QuantizationTest, TestUpperBoundRanges) {
 
 // Make sure that quantizing to the largest range is the identity function.
 TEST(QuantizationTest, TestIdentity) {
-  for (int i = 0; i < 256; ++i) {
+  for (unsigned int i = 0; i < 256; ++i) {
     EXPECT_EQ(QuantizeCEValueToRange(i, 255), i);
   }
 
@@ -158,11 +158,12 @@ TEST(QuantizationTest, TestIdentity) {
 // since quantizing and dequantizing bits is a matter of truncation and bit
 // replication
 TEST(QuantizationTest, TestMonotonicBitPacking) {
-  for (int num_bits = 3; num_bits < 8; ++num_bits) {
-    const int range = (1 << num_bits) - 1;
+  for (unsigned int num_bits = 3; num_bits < 8; ++num_bits) {
+    const unsigned int range = (1 << num_bits) - 1;
     int last_quant_val = -1;
     for (int i = 0; i < 256; ++i) {
-      const int quant_val = QuantizeCEValueToRange(i, range);
+      const unsigned int quant_val =
+          static_cast<int>(QuantizeCEValueToRange(i, range));
       EXPECT_LE(last_quant_val, quant_val);
       last_quant_val = quant_val;
     }
@@ -172,8 +173,8 @@ TEST(QuantizationTest, TestMonotonicBitPacking) {
 
     if (range <= kWeightRangeMaxValue) {
       last_quant_val = -1;
-      for (int i = 0; i <= 64; ++i) {
-        const int quant_val = QuantizeWeightToRange(i, range);
+      for (unsigned int i = 0; i <= 64; ++i) {
+        const int quant_val = static_cast<int>(QuantizeWeightToRange(i, range));
         EXPECT_LE(last_quant_val, quant_val);
         last_quant_val = quant_val;
       }
@@ -186,7 +187,7 @@ TEST(QuantizationTest, TestMonotonicBitPacking) {
 // replication threshold get mapped to zero
 TEST(QuantizationTest, TestSmallBitPacking) {
   for (int num_bits = 1; num_bits <= 8; ++num_bits) {
-    const int range = (1 << num_bits) - 1;
+    const unsigned int range = (1 << static_cast<unsigned int>(num_bits)) - 1;
 
     // The largest number that should map to zero is one less than half of the
     // smallest representation w.r.t. range. For example: if we have a range
@@ -222,28 +223,29 @@ TEST(QuantizationTest, TestSmallBitPacking) {
 // Test specific quint and trit weight encodings with values that were obtained
 // using the reference ASTC codec.
 TEST(QuantizationTest, TestSpecificQuintTritPackings) {
-  std::vector<int> vals = { 4, 6, 4, 6, 7, 5, 7, 5 };
-  std::vector<int> quantized;
+  std::vector<unsigned int> vals = {4, 6, 4, 6, 7, 5, 7, 5};
+  std::vector<unsigned int> quantized;
 
   // Test a quint packing
   std::transform(
       vals.begin(), vals.end(), std::back_inserter(quantized),
       std::bind(UnquantizeWeightFromRange, std::placeholders::_1, 9));
-  const std::vector<int> quintExpected = {14, 21, 14, 21, 43, 50, 43, 50 };
+  const std::vector<unsigned int> quintExpected = {14, 21, 14, 21,
+                                                   43, 50, 43, 50};
   EXPECT_EQ(quantized, quintExpected);
 
   // Test a trit packing
   std::transform(
       vals.begin(), vals.end(), quantized.begin(),
       std::bind(UnquantizeWeightFromRange, std::placeholders::_1, 11));
-  const std::vector<int> tritExpected = { 5, 23, 5, 23, 41, 59, 41, 59 };
+  const std::vector<unsigned int> tritExpected = {5, 23, 5, 23, 41, 59, 41, 59};
   EXPECT_EQ(quantized, tritExpected);
 }
 
 // Make sure that we properly die when we pass in values below the minimum
 // allowed ranges for our quantization intervals.
 TEST(QuantizationDeathTest, TestInvalidMinRange) {
-  for (int i = 0; i < kEndpointRangeMinValue; ++i) {
+  for (unsigned int i = 0; i < kEndpointRangeMinValue; ++i) {
     EXPECT_DEBUG_DEATH(QuantizeCEValueToRange(0, i), "");
     EXPECT_DEBUG_DEATH(UnquantizeCEValueFromRange(0, i), "");
   }

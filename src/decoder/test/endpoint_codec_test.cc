@@ -433,7 +433,7 @@ TEST(EndpointCodecTest, DecodeCheckerboard) {
   const RgbaColor kBlack {{ 0, 0, 0, 255 }};
 
   const std::string astc = LoadASTCFile("checkerboard");
-  for (int i = 0; i < astc.size(); i += 16) {
+  for (size_t i = 0; i + 16 <= astc.size(); i += 16) {
     base::UInt128 block;
     memcpy(&block, &astc[i], sizeof(block));
 

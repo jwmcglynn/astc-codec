@@ -55,12 +55,12 @@ struct Partition {
   // The number of subsets in this partition. The values in the partition
   // assignment fall within the range [0, num_parts). The maximum number of
   // parts supported is four.
-  int num_parts;
+  unsigned int num_parts;
 
   // The 10-bit partition ID as stored in bits 13-22 of multi-part ASTC blocks.
   // (See Section C.2.9) If there is no guarantee that this partition is a valid
   // ASTC partition, this should be set to absl::nullopt.
-  base::Optional<int> partition_id;
+  base::Optional<unsigned int> partition_id;
 
   // A value in the range [0, num_parts) corresponding to the label for
   // the given texel (x, y) in [0, footprint_width) x [0, footprint_height)
@@ -75,13 +75,13 @@ struct Partition {
 };
 
 // Generates the ASTC partition assignment for the given block attributes.
-Partition GetASTCPartition(const Footprint& footprint, int num_parts,
-                           int partition_id);
+Partition GetASTCPartition(const Footprint& footprint, unsigned int num_parts,
+                           unsigned int partition_id);
 
 // Returns the |k| valid ASTC partitions that are closest to the candidate based
 // on the PartitionMetric defined above.
 const std::vector<const Partition*> FindKClosestASTCPartitions(
-    const Partition& candidate, int k);
+    const Partition& candidate, unsigned int k);
 
 // Returns the valid ASTC partition closest to the candidate with at most as
 // many subsets as the |candidate|. Note: this is not a deterministic function,

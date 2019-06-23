@@ -299,19 +299,19 @@ class DualChannelStat : public Stat {
                            size_t total)
       : Stat(blocks, total),
         dual_channels_(IterateBlocks(
-            std::vector<int>(),
-            [](const IntermediateBlockData& data, std::vector<int>&& input) {
+            std::vector<unsigned int>(), [](const IntermediateBlockData& data,
+                                            std::vector<unsigned int>&& input) {
               auto result = input;
               if (data.dual_plane_channel) {
                 result.push_back(data.dual_plane_channel.value());
               }
               return result;
-            })) { }
+            })) {}
 
   std::ostream& PrintToStream(std::ostream& out) const override {
     // Similar to the number of partitions, the number of dual plane blocks
     // can be determined by parsing the next four fields and summing them.
-    const int num_dual_plane_blocks = dual_channels_.size();
+    const size_t num_dual_plane_blocks = dual_channels_.size();
     out << "Number of dual-plane blocks: " << num_dual_plane_blocks
         << " (" << (num_dual_plane_blocks * 100) / NumBlocks() << "%)"
         << std::endl;
@@ -331,12 +331,12 @@ class DualChannelStat : public Stat {
     for (size_t i = 0; i < kNumDualPlaneChannels; ++i) {
       counts[i] =
           std::count_if(dual_channels_.begin(), dual_channels_.end(),
-                        [i](int channel) { return i == channel; });
+                        [i](unsigned int channel) { return i == channel; });
     }
     return counts;
   }
 
-  const std::vector<int> dual_channels_;
+  const std::vector<unsigned int> dual_channels_;
 };
 
 
@@ -453,8 +453,8 @@ class ASTCFileStats {
 
     // Count the weight resolutions in the list of blocks.
     for (const auto& block : blocks_) {
-      const int dim_x = block.weight_grid_dim_x;
-      const int dim_y = block.weight_grid_dim_y;
+      const unsigned int dim_x = block.weight_grid_dim_x;
+      const unsigned int dim_y = block.weight_grid_dim_y;
       assert(dim_x > 0);
       assert(dim_x < kResolutionBuckets);
       assert(dim_y > 0);
@@ -617,10 +617,10 @@ void PrintStatsForBlock(const PhysicalASTCBlock& pb,
       assert(part.assignment.size() == footprint.Height() * footprint.Width());
 
       std::cout << "Assignment:" << std::endl;
-      for (int y = 0; y < footprint.Height(); ++y) {
+      for (unsigned int y = 0; y < footprint.Height(); ++y) {
         std::cout << " ";
-        for (int x = 0; x < footprint.Width(); ++x) {
-          const int texel_index = y * footprint.Width() + x;
+        for (unsigned int x = 0; x < footprint.Width(); ++x) {
+          const unsigned int texel_index = y * footprint.Width() + x;
           std::cout << " " << part.assignment[texel_index];
         }
         std::cout << std::endl;
@@ -655,10 +655,10 @@ void PrintStatsForBlock(const PhysicalASTCBlock& pb,
     std::cout << "Weight range: " << ib_data.weight_range << std::endl;
 
     std::cout << "Encoded weight grid: " << std::endl;
-    int weight_idx = 0;
-    for (int j = 0; j < ib_data.weight_grid_dim_y; ++j) {
+    size_t weight_idx = 0;
+    for (unsigned int j = 0; j < ib_data.weight_grid_dim_y; ++j) {
       std::cout << "  ";
-      for (int i = 0; i < ib_data.weight_grid_dim_x; ++i) {
+      for (unsigned int i = 0; i < ib_data.weight_grid_dim_x; ++i) {
         std::cout << std::setw(3) << std::left << std::setfill(' ')
                   << ib_data.weights[weight_idx++];
       }
@@ -666,7 +666,7 @@ void PrintStatsForBlock(const PhysicalASTCBlock& pb,
     }
 
     std::cout << "Actual weight grid: " << std::endl;
-    std::vector<int> actual_weights = ib_data.weights;
+    std::vector<unsigned int> actual_weights = ib_data.weights;
     for (auto& weight : actual_weights) {
       weight = astc_codec::UnquantizeWeightFromRange(
           weight, ib_data.weight_range);
@@ -677,9 +677,9 @@ void PrintStatsForBlock(const PhysicalASTCBlock& pb,
         ib_data.weight_grid_dim_y);
 
     weight_idx = 0;
-    for (int j = 0; j < footprint.Height(); ++j) {
+    for (unsigned int j = 0; j < footprint.Height(); ++j) {
       std::cout << "  ";
-      for (int i = 0; i < footprint.Width(); ++i) {
+      for (unsigned int i = 0; i < footprint.Width(); ++i) {
         std::cout << std::setw(3) << std::left << std::setfill(' ')
                   << actual_weights[weight_idx++];
       }

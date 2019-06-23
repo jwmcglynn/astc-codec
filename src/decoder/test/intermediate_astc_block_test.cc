@@ -93,19 +93,19 @@ TEST(IntermediateASTCBlockTest, TestEndpointRangeForBlock) {
 
   // Weight params control how many weights are present in a block
   struct WeightParams {
-    int width;
-    int height;
+    unsigned int width;
+    unsigned int height;
 
     // We should sort based on number of weights for these params
-    int NumWeights() const { return width * height; }
+    unsigned int NumWeights() const { return width * height; }
     bool operator<(const WeightParams& other) const {
       return NumWeights() < other.NumWeights();
     }
   };
 
   std::vector<WeightParams> weight_params;
-  for (int y = 2; y < 8; ++y) {
-    for (int x = 2; x < 8; ++x) {
+  for (unsigned int y = 2; y < 8; ++y) {
+    for (unsigned int x = 2; x < 8; ++x) {
       weight_params.emplace_back(WeightParams{x, y});
     }
   }

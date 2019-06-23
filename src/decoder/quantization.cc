@@ -28,107 +28,98 @@ namespace astc_codec {
 namespace {
 
 // Trit unquantization procedure as described in Section C.2.13
-int GetUnquantizedTritValue(int trit, int bits, int range) {
-  int a = (bits & 1) ? 0x1FF : 0;
-  int b = 0, c = 0;
+unsigned int GetUnquantizedTritValue(unsigned int trit, unsigned int bits,
+                                     unsigned int range) {
+  unsigned int a = (bits & 1) ? 0x1FF : 0;
+  unsigned int b = 0, c = 0;
   switch (range) {
     case 5: {
       b = 0;
       c = 204;
-    }
-      break;
+    } break;
 
     case 11: {
-      int x = (bits >> 1) & 0x1;
+      unsigned int x = (bits >> 1) & 0x1;
       b = (x << 1) | (x << 2) | (x << 4) | (x << 8);
       c = 93;
-    }
-      break;
+    } break;
 
     case 23: {
-      int x = (bits >> 1) & 0x3;
+      unsigned int x = (bits >> 1) & 0x3;
       b = x | (x << 2) | (x << 7);
       c = 44;
-    }
-      break;
+    } break;
 
     case 47: {
-      int x = (bits >> 1) & 0x7;
+      unsigned int x = (bits >> 1) & 0x7;
       b = x | (x << 6);
       c = 22;
-    }
-      break;
+    } break;
 
     case 95: {
-      int x = (bits >> 1) & 0xF;
+      unsigned int x = (bits >> 1) & 0xF;
       b = (x >> 2) | (x << 5);
       c = 11;
-    }
-      break;
+    } break;
 
     case 191: {
-      int x = (bits >> 1) & 0x1F;
+      unsigned int x = (bits >> 1) & 0x1F;
       b = (x >> 4) | (x << 4);
       c = 5;
-    }
-      break;
+    } break;
 
     default:
       assert(false && "Illegal trit encoding");
       break;
   }
 
-  int t = trit * c + b;
+  unsigned int t = trit * c + b;
   t ^= a;
   t = (a & 0x80) | (t >> 2);
   return t;
 }
 
 // Quint unquantization procedure as described in Section C.2.13
-int GetUnquantizedQuintValue(int quint, int bits, int range) {
-  int a = (bits & 1) ? 0x1FF : 0;
-  int b = 0, c = 0;
+unsigned int GetUnquantizedQuintValue(unsigned int quint, unsigned int bits,
+                                      unsigned int range) {
+  unsigned int a = (bits & 1) ? 0x1FF : 0;
+  unsigned int b = 0, c = 0;
   switch (range) {
     case 9: {
       b = 0;
       c = 113;
-    }
-      break;
+    } break;
 
     case 19: {
-      int x = (bits >> 1) & 0x1;
+      unsigned int x = (bits >> 1) & 0x1;
       b = (x << 2) | (x << 3) | (x << 8);
       c = 54;
-    }
-      break;
+    } break;
 
     case 39: {
-      int x = (bits >> 1) & 0x3;
+      unsigned int x = (bits >> 1) & 0x3;
       b = (x >> 1) | (x << 1) | (x << 7);
       c = 26;
-    }
-      break;
+    } break;
 
     case 79: {
-      int x = (bits >> 1) & 0x7;
+      unsigned int x = (bits >> 1) & 0x7;
       b = (x >> 1) | (x << 6);
       c = 13;
-    }
-      break;
+    } break;
 
     case 159: {
-      int x = (bits >> 1) & 0xF;
+      unsigned int x = (bits >> 1) & 0xF;
       b = (x >> 3) | (x << 5);
       c = 6;
-    }
-      break;
+    } break;
 
     default:
       assert(false && "Illegal quint encoding");
       break;
   }
 
-  int t = quint * c + b;
+  unsigned int t = quint * c + b;
   t ^= a;
   t = (a & 0x80) | (t >> 2);
   return t;
@@ -137,17 +128,17 @@ int GetUnquantizedQuintValue(int quint, int bits, int range) {
 // Trit unquantization procedure as described in Section C.2.17. In the code
 // below, the variables a, b, and c correspond to the columns A, B, and C in
 // the specification.
-int GetUnquantizedTritWeight(int trit, int bits, int range) {
-  int a = (bits & 1) ? 0x7F : 0;
-  int b = 0, c = 0;
+unsigned int GetUnquantizedTritWeight(unsigned int trit, unsigned int bits,
+                                      unsigned int range) {
+  unsigned int a = (bits & 1) ? 0x7F : 0;
+  unsigned int b = 0, c = 0;
   switch (range) {
-    case 2:
-      return (std::array<int, 3> {{ 0, 32, 63 }})[trit];
+    case 2: return (std::array<unsigned int, 3>{{0, 32, 63}})[trit];
 
-    case 5:
+    case 5: {
       c = 50;
       b = 0;
-      break;
+    } break;
 
     case 11: {
       c = 23;
@@ -168,7 +159,7 @@ int GetUnquantizedTritWeight(int trit, int bits, int range) {
       break;
   }
 
-  int t = trit * c + b;
+  unsigned int t = trit * c + b;
   t ^= a;
   t = (a & 0x20) | (t >> 2);
   return t;
@@ -177,17 +168,17 @@ int GetUnquantizedTritWeight(int trit, int bits, int range) {
 // Quint unquantization procedure as described in Section C.2.17. In the code
 // below, the variables a, b, and c correspond to the columns A, B, and C in
 // the specification.
-int GetUnquantizedQuintWeight(int quint, int bits, int range) {
-  int a = (bits & 1) ? 0x7F : 0;
-  int b = 0, c = 0;
+unsigned int GetUnquantizedQuintWeight(unsigned int quint, unsigned int bits,
+                                       unsigned int range) {
+  unsigned int a = (bits & 1) ? 0x7F : 0;
+  unsigned int b = 0, c = 0;
   switch (range) {
-    case 4:
-      return (std::array<int, 5> {{ 0, 16, 32, 47, 63 }})[quint];
+    case 4: return (std::array<unsigned int, 5>{{0, 16, 32, 47, 63}})[quint];
 
-    case 9:
+    case 9: {
       c = 28;
       b = 0;
-      break;
+    } break;
 
     case 19: {
       c = 13;
@@ -201,7 +192,7 @@ int GetUnquantizedQuintWeight(int quint, int bits, int range) {
       break;
   }
 
-  int t = quint * c + b;
+  unsigned int t = quint * c + b;
   t ^= a;
   t = (a & 0x20) | (t >> 2);
   return t;
@@ -211,18 +202,18 @@ int GetUnquantizedQuintWeight(int quint, int bits, int range) {
 // according to the ASTC spec.
 class QuantizationMap {
  public:
-  int Quantize(int x) const {
+  unsigned int Quantize(unsigned int x) const {
     return x < quantization_map_.size() ? quantization_map_.at(x) : 0;
   }
 
-  int Unquantize(int x) const {
+  unsigned int Unquantize(unsigned int x) const {
     return x < unquantization_map_.size() ? unquantization_map_.at(x) : 0;
   }
 
  protected:
   QuantizationMap() { }
-  std::vector<int> quantization_map_;
-  std::vector<int> unquantization_map_;
+  std::vector<unsigned int> quantization_map_;
+  std::vector<unsigned int> unquantization_map_;
 
   void GenerateQuantizationMap() {
     assert(unquantization_map_.size() > 1);
@@ -231,13 +222,14 @@ class QuantizationMap {
     // TODO(google) For weights, we don't need quantization values all the
     // way up to 256, but it doesn't hurt -- just wastes memory, but the code
     // is much cleaner this way
-    for (int i = 0; i < 256; ++i) {
-      int best_idx = 0;
-      int best_idx_score = 256;
-      int idx = 0;
-      for (int unquantized_val : unquantization_map_) {
-        const int diff = i - unquantized_val;
-        const int idx_score = diff * diff;
+    for (unsigned int i = 0; i < 256; ++i) {
+      unsigned int best_idx = 0;
+      unsigned int best_idx_score = 256;
+      unsigned int idx = 0;
+      for (unsigned int unquantized_val : unquantization_map_) {
+        const int diff =
+            static_cast<int>(i) - static_cast<int>(unquantized_val);
+        const unsigned int idx_score = static_cast<unsigned int>(diff * diff);
         if (idx_score < best_idx_score) {
           best_idx = idx;
           best_idx_score = idx_score;
@@ -250,17 +242,20 @@ class QuantizationMap {
   }
 };
 
-template<int (*UnquantizationFunc)(int, int, int)>
+template<unsigned int (*UnquantizationFunc)(unsigned int, unsigned int,
+                                            unsigned int)>
 class TritQuantizationMap : public QuantizationMap {
  public:
-  explicit TritQuantizationMap(int range) : QuantizationMap() {
+  explicit TritQuantizationMap(unsigned int range) : QuantizationMap() {
     assert((range + 1) % 3 == 0);
-    const int num_bits_pow_2 = (range + 1) / 3;
-    const int num_bits =
-        num_bits_pow_2 == 0 ? 0 : base::Log2Floor(num_bits_pow_2);
+    const unsigned int num_bits_pow_2 = (range + 1) / 3;
+    const unsigned int num_bits =
+        num_bits_pow_2 == 0
+            ? 0
+            : static_cast<unsigned int>(base::Log2Floor(num_bits_pow_2));
 
-    for (int trit = 0; trit < 3; ++trit) {
-      for (int bits = 0; bits < (1 << num_bits); ++bits) {
+    for (unsigned int trit = 0; trit < 3; ++trit) {
+      for (unsigned int bits = 0; bits < (1u << num_bits); ++bits) {
         unquantization_map_.push_back(UnquantizationFunc(trit, bits, range));
       }
     }
@@ -269,17 +264,20 @@ class TritQuantizationMap : public QuantizationMap {
   }
 };
 
-template<int (*UnquantizationFunc)(int, int, int)>
+template<unsigned int (*UnquantizationFunc)(unsigned int, unsigned int,
+                                            unsigned int)>
 class QuintQuantizationMap : public QuantizationMap {
  public:
-  explicit QuintQuantizationMap(int range) : QuantizationMap() {
+  explicit QuintQuantizationMap(unsigned int range) : QuantizationMap() {
     assert((range + 1) % 5 == 0);
-    const int num_bits_pow_2 = (range + 1) / 5;
-    const int num_bits =
-        num_bits_pow_2 == 0 ? 0 : base::Log2Floor(num_bits_pow_2);
+    const unsigned int num_bits_pow_2 = (range + 1) / 5;
+    const unsigned int num_bits =
+        num_bits_pow_2 == 0
+            ? 0
+            : static_cast<unsigned int>(base::Log2Floor(num_bits_pow_2));
 
-    for (int quint = 0; quint < 5; ++quint) {
-      for (int bits = 0; bits < (1 << num_bits); ++bits) {
+    for (unsigned int quint = 0; quint < 5; ++quint) {
+      for (unsigned int bits = 0; bits < (1u << num_bits); ++bits) {
         unquantization_map_.push_back(UnquantizationFunc(quint, bits, range));
       }
     }
@@ -288,23 +286,24 @@ class QuintQuantizationMap : public QuantizationMap {
   }
 };
 
-template<int TotalUnquantizedBits>
+template<unsigned int TotalUnquantizedBits>
 class BitQuantizationMap : public QuantizationMap {
  public:
-  explicit BitQuantizationMap<TotalUnquantizedBits>(int range)
+  explicit BitQuantizationMap<TotalUnquantizedBits>(unsigned int range)
       : QuantizationMap() {
     // Make sure that if we're using bits then we have a positive power of two.
     assert(base::CountOnes(range + 1) == 1);
 
-    const int num_bits = base::Log2Floor(range + 1);
-    for (int bits = 0; bits <= range; ++bits) {
+    const unsigned int num_bits =
+        static_cast<unsigned int>(base::Log2Floor(range + 1));
+    for (unsigned int bits = 0; bits <= range; ++bits) {
       // Need to replicate bits until we fill up the bits
-      int unquantized = bits;
-      int num_unquantized_bits = num_bits;
+      unsigned int unquantized = bits;
+      unsigned int num_unquantized_bits = num_bits;
       while (num_unquantized_bits < TotalUnquantizedBits) {
-        const int num_dst_bits_to_shift_up =
+        const unsigned int num_dst_bits_to_shift_up =
             std::min(num_bits, TotalUnquantizedBits - num_unquantized_bits);
-        const int num_src_bits_to_shift_down =
+        const unsigned int num_src_bits_to_shift_down =
             num_bits - num_dst_bits_to_shift_up;
         unquantized <<= num_dst_bits_to_shift_up;
         unquantized |= bits >> num_src_bits_to_shift_down;
@@ -317,7 +316,7 @@ class BitQuantizationMap : public QuantizationMap {
       // Fill half of the quantization map with the previous value for bits
       // and the other half with the current value for bits
       if (bits > 0) {
-        const int prev_unquant = unquantization_map_.at(bits - 1);
+        const unsigned int prev_unquant = unquantization_map_.at(bits - 1);
         while (quantization_map_.size() <= (prev_unquant + unquantized) / 2) {
           quantization_map_.push_back(bits - 1);
         }
@@ -335,7 +334,7 @@ using QMap = std::shared_ptr<QuantizationMap>;
 
 // Returns the quantization map for quantizing color values in [0, 255] with the
 // smallest range that can accommodate |r|
-static const QuantizationMap* GetQuantMapForValueRange(int r) {
+static const QuantizationMap* GetQuantMapForValueRange(unsigned int r) {
   // Endpoint values can be quantized using bits, trits, or quints. Here we
   // store the quantization maps for each of the ranges that are supported by
   // such an encoding. That way we can choose the proper quantization procedure
@@ -343,24 +342,25 @@ static const QuantizationMap* GetQuantMapForValueRange(int r) {
   // logic. We must use a std::map here instead of a std::unordered_map because
   // of the assumption made in std::upper_bound about the iterators being from a
   // poset.
-  static const auto* const kASTCEndpointQuantization = new std::map<int, QMap> {
-    { 5, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(5)) },
-    { 7, QMap(new BitQuantizationMap<8>(7)) },
-    { 9, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(9)) },
-    { 11, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(11)) },
-    { 15, QMap(new BitQuantizationMap<8>(15)) },
-    { 19, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(19)) },
-    { 23, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(23)) },
-    { 31, QMap(new BitQuantizationMap<8>(31)) },
-    { 39, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(39)) },
-    { 47, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(47)) },
-    { 63, QMap(new BitQuantizationMap<8>(63)) },
-    { 79, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(79)) },
-    { 95, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(95)) },
-    { 127, QMap(new BitQuantizationMap<8>(127)) },
-    { 159, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(159)) },
-    { 191, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(191)) },
-    { 255, QMap(new BitQuantizationMap<8>(255)) },
+  static const auto* const kASTCEndpointQuantization = new std::map<
+      unsigned int, QMap>{
+      {5, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(5))},        //
+      {7, QMap(new BitQuantizationMap<8>(7))},                               //
+      {9, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(9))},      //
+      {11, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(11))},      //
+      {15, QMap(new BitQuantizationMap<8>(15))},                             //
+      {19, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(19))},    //
+      {23, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(23))},      //
+      {31, QMap(new BitQuantizationMap<8>(31))},                             //
+      {39, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(39))},    //
+      {47, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(47))},      //
+      {63, QMap(new BitQuantizationMap<8>(63))},                             //
+      {79, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(79))},    //
+      {95, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(95))},      //
+      {127, QMap(new BitQuantizationMap<8>(127))},                           //
+      {159, QMap(new QuintQuantizationMap<GetUnquantizedQuintValue>(159))},  //
+      {191, QMap(new TritQuantizationMap<GetUnquantizedTritValue>(191))},    //
+      {255, QMap(new BitQuantizationMap<8>(255))},                           //
   };
 
   assert(r < 256);
@@ -373,24 +373,26 @@ static const QuantizationMap* GetQuantMapForValueRange(int r) {
 
 // Returns the quantization map for weight values in [0, 63] with the smallest
 // range that can accommodate |r|
-static const QuantizationMap* GetQuantMapForWeightRange(int r) {
+static const QuantizationMap* GetQuantMapForWeightRange(unsigned int r) {
   // Similar to endpoint quantization, weights can also be stored using trits,
   // quints, or bits. Here we store the quantization maps for each of the ranges
   // that are supported by such an encoding.
-  static const auto* const kASTCWeightQuantization = new std::map<int, QMap> {
-    { 1, QMap(new BitQuantizationMap<6>(1)) },
-    { 2, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(2)) },
-    { 3, QMap(new BitQuantizationMap<6>(3)) },
-    { 4, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(4)) },
-    { 5, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(5)) },
-    { 7, QMap(new BitQuantizationMap<6>(7)) },
-    { 9, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(9)) },
-    { 11, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(11)) },
-    { 15, QMap(new BitQuantizationMap<6>(15)) },
-    { 19, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(19)) },
-    { 23, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(23)) },
-    { 31, QMap(new BitQuantizationMap<6>(31)) },
-  };
+  static const auto* const kASTCWeightQuantization =
+      new std::map<unsigned int, QMap>{
+          {1, QMap(new BitQuantizationMap<6>(1))},                            //
+          {2, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(2))},    //
+          {3, QMap(new BitQuantizationMap<6>(3))},                            //
+          {4, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(4))},  //
+          {5, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(5))},    //
+          {7, QMap(new BitQuantizationMap<6>(7))},                            //
+          {9, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(9))},  //
+          {11, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(11))},  //
+          {15, QMap(new BitQuantizationMap<6>(15))},                          //
+          {19,
+           QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(19))},    //
+          {23, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(23))},  //
+          {31, QMap(new BitQuantizationMap<6>(31))},                          //
+      };
 
   assert(r < 32);
   auto itr = kASTCWeightQuantization->upper_bound(r);
@@ -404,30 +406,30 @@ static const QuantizationMap* GetQuantMapForWeightRange(int r) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int QuantizeCEValueToRange(int value, int range_max_value) {
+unsigned int QuantizeCEValueToRange(unsigned int value,
+                                    unsigned int range_max_value) {
   assert(range_max_value >= kEndpointRangeMinValue);
   assert(range_max_value <= 255);
-  assert(value >= 0);
   assert(value <= 255);
 
   const QuantizationMap* map = GetQuantMapForValueRange(range_max_value);
   return map ? map->Quantize(value) : 0;
 }
 
-int UnquantizeCEValueFromRange(int value, int range_max_value) {
+unsigned int UnquantizeCEValueFromRange(unsigned int value,
+                                        unsigned int range_max_value) {
   assert(range_max_value >= kEndpointRangeMinValue);
   assert(range_max_value <= 255);
-  assert(value >= 0);
   assert(value <= range_max_value);
 
   const QuantizationMap* map = GetQuantMapForValueRange(range_max_value);
   return map ? map->Unquantize(value) : 0;
 }
 
-int QuantizeWeightToRange(int weight, int range_max_value) {
+unsigned int QuantizeWeightToRange(unsigned int weight,
+                                   unsigned int range_max_value) {
   assert(range_max_value >= 1);
   assert(range_max_value <= kWeightRangeMaxValue);
-  assert(weight >= 0);
   assert(weight <= 64);
 
   // The quantization maps that define weight unquantization expect values in
@@ -442,13 +444,13 @@ int QuantizeWeightToRange(int weight, int range_max_value) {
   return map ? map->Quantize(weight) : 0;
 }
 
-int UnquantizeWeightFromRange(int weight, int range_max_value) {
+unsigned int UnquantizeWeightFromRange(unsigned int weight,
+                                       unsigned int range_max_value) {
   assert(range_max_value >= 1);
   assert(range_max_value <= kWeightRangeMaxValue);
-  assert(weight >= 0);
   assert(weight <= range_max_value);
   const QuantizationMap* map = GetQuantMapForWeightRange(range_max_value);
-  int dq = map ? map->Unquantize(weight) : 0;
+  unsigned int dq = map ? map->Unquantize(weight) : 0;
 
   // Quantized weights are returned in the range [0, 64), but they should be
   // returned in the range [0, 64], so according to C.2.17 we need to add one

@@ -50,8 +50,8 @@ struct ImageTestParams {
   std::string image_name;
   bool has_alpha;
   Footprint footprint;
-  int width;
-  int height;
+  unsigned int width;
+  unsigned int height;
 };
 
 static void PrintTo(const ImageTestParams& params, std::ostream* os) {
@@ -75,16 +75,16 @@ TEST_P(LogicalASTCBlockTest, ImageWithFootprint) {
   ImageBuffer our_decoded_image;
   our_decoded_image.Allocate(params.width, params.height, params.has_alpha ? 4 : 3);
 
-  const int block_width = params.footprint.Width();
-  const int block_height = params.footprint.Height();
+  const unsigned int block_width = params.footprint.Width();
+  const unsigned int block_height = params.footprint.Height();
 
   base::UInt128 block;
-  for (int i = 0; i < astc.size(); i += 16) {
-    const int block_index = i / 16;
-    const int blocks_wide =
+  for (size_t i = 0; i + 16 <= astc.size(); i += 16) {
+    const unsigned int block_index = static_cast<unsigned int>(i / 16);
+    const unsigned int blocks_wide =
         (params.width + block_width - 1) / block_width;
-    const int block_x = block_index % blocks_wide;
-    const int block_y = block_index / blocks_wide;
+    const unsigned int block_x = block_index % blocks_wide;
+    const unsigned int block_y = block_index / blocks_wide;
     memcpy(&block, astc.data() + i, sizeof(block));
 
     PhysicalASTCBlock physical_block(block);
@@ -105,10 +105,10 @@ TEST_P(LogicalASTCBlockTest, ImageWithFootprint) {
     LogicalASTCBlock logical_block = lb.value();
     const size_t color_size = params.has_alpha ? 4 : 3;
 
-    for (int y = 0; y < block_height; ++y) {
-      for (int x = 0; x < block_width; ++x) {
-        const int px = block_width * block_x + x;
-        const int py = block_height * block_y + y;
+    for (unsigned int y = 0; y < block_height; ++y) {
+      for (unsigned int x = 0; x < block_width; ++x) {
+        const unsigned int px = block_width * block_x + x;
+        const unsigned int py = block_height * block_y + y;
 
         // Skip out of bounds.
         if (px >= params.width || py >= params.height) {
@@ -119,7 +119,7 @@ TEST_P(LogicalASTCBlockTest, ImageWithFootprint) {
         const RgbaColor decoded_color = logical_block.ColorAt(x, y);
         ASSERT_LE(color_size, decoded_color.size());
 
-        for (int c = 0; c < color_size; ++c) {
+        for (size_t c = 0; c < color_size; ++c) {
           // All of the pixels should also be 8-bit values.
           ASSERT_GE(decoded_color[c], 0);
           ASSERT_LT(decoded_color[c], 256);
@@ -213,8 +213,8 @@ TEST(LogicalASTCBlockTest, SetEndpoints) {
 
   // For each pixel, we expect it to mirror the endpoints in a checkerboard
   // pattern
-  for (int j = 0; j < 8; ++j) {
-    for (int i = 0; i < 8; ++i) {
+  for (unsigned int j = 0; j < 8; ++j) {
+    for (unsigned int i = 0; i < 8; ++i) {
       if (((i ^ j) & 1) == 1) {
         EXPECT_THAT(logical_block.ColorAt(i, j), ElementsAre(123, 45, 67, 89));
       } else {

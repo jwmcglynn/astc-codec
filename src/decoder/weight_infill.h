@@ -23,15 +23,17 @@ namespace astc_codec {
 
 // Returns the number of bits used to represent the weight grid at the target
 // dimensions and weight range.
-int CountBitsForWeights(int weight_dim_x, int weight_dim_y,
-                        int target_weight_range);
+unsigned int CountBitsForWeights(unsigned int weight_dim_x,
+                                 unsigned int weight_dim_y,
+                                 unsigned int target_weight_range);
 
 // Performs weight infill of a grid of weights of size |dim_x * dim_y|. The
 // weights are fit using the algorithm laid out in Section C.2.18 of the ASTC
 // specification. Weights are expected to be passed unquantized and the returned
 // grid will be unquantized as well (i.e. each weight within the range [0, 64]).
-std::vector<int> InfillWeights(const std::vector<int>& weights,
-                               Footprint footprint, int dim_x, int dim_y);
+std::vector<unsigned int> InfillWeights(
+    const std::vector<unsigned int>& weights, Footprint footprint,
+    unsigned int dim_x, unsigned int dim_y);
 
 }  // namespace astc_codec
 

@@ -32,42 +32,41 @@ namespace {
 // Make sure that the counts returned for a specific range match what's
 // expected. In particular, make sure that it fits with Table C.2.7
 TEST(ASTCIntegerSequenceCodecTest, TestGetCountsForRange) {
-  std::array<int, 3> kExpectedCounts[31] = {
-    {{ 0, 0, 1 }},  // 1
-    {{ 1, 0, 0 }},  // 2
-    {{ 0, 0, 2 }},  // 3
-    {{ 0, 1, 0 }},  // 4
-    {{ 1, 0, 1 }},  // 5
-    {{ 0, 0, 3 }},  // 6
-    {{ 0, 0, 3 }},  // 7
-    {{ 0, 1, 1 }},  // 8
-    {{ 0, 1, 1 }},  // 9
-    {{ 1, 0, 2 }},  // 10
-    {{ 1, 0, 2 }},  // 11
-    {{ 0, 0, 4 }},  // 12
-    {{ 0, 0, 4 }},  // 13
-    {{ 0, 0, 4 }},  // 14
-    {{ 0, 0, 4 }},  // 15
-    {{ 0, 1, 2 }},  // 16
-    {{ 0, 1, 2 }},  // 17
-    {{ 0, 1, 2 }},  // 18
-    {{ 0, 1, 2 }},  // 19
-    {{ 1, 0, 3 }},  // 20
-    {{ 1, 0, 3 }},  // 21
-    {{ 1, 0, 3 }},  // 22
-    {{ 1, 0, 3 }},  // 23
-    {{ 0, 0, 5 }},  // 24
-    {{ 0, 0, 5 }},  // 25
-    {{ 0, 0, 5 }},  // 26
-    {{ 0, 0, 5 }},  // 27
-    {{ 0, 0, 5 }},  // 28
-    {{ 0, 0, 5 }},  // 29
-    {{ 0, 0, 5 }},  // 30
-    {{ 0, 0, 5 }},  // 31
+  std::array<unsigned int, 3> kExpectedCounts[31] = {
+      {{0, 0, 1}},  // 1
+      {{1, 0, 0}},  // 2
+      {{0, 0, 2}},  // 3
+      {{0, 1, 0}},  // 4
+      {{1, 0, 1}},  // 5
+      {{0, 0, 3}},  // 6
+      {{0, 0, 3}},  // 7
+      {{0, 1, 1}},  // 8
+      {{0, 1, 1}},  // 9
+      {{1, 0, 2}},  // 10
+      {{1, 0, 2}},  // 11
+      {{0, 0, 4}},  // 12
+      {{0, 0, 4}},  // 13
+      {{0, 0, 4}},  // 14
+      {{0, 0, 4}},  // 15
+      {{0, 1, 2}},  // 16
+      {{0, 1, 2}},  // 17
+      {{0, 1, 2}},  // 18
+      {{0, 1, 2}},  // 19
+      {{1, 0, 3}},  // 20
+      {{1, 0, 3}},  // 21
+      {{1, 0, 3}},  // 22
+      {{1, 0, 3}},  // 23
+      {{0, 0, 5}},  // 24
+      {{0, 0, 5}},  // 25
+      {{0, 0, 5}},  // 26
+      {{0, 0, 5}},  // 27
+      {{0, 0, 5}},  // 28
+      {{0, 0, 5}},  // 29
+      {{0, 0, 5}},  // 30
+      {{0, 0, 5}},  // 31
   };
 
-  int t, q;
-  unsigned int b;
+  unsigned int t, q, b;
   for (int i = 1; i < 32; ++i) {
     IntegerSequenceCodec::GetCountsForRange(i, &t, &q, &b);
     EXPECT_EQ(t, kExpectedCounts[i - 1][0]);
@@ -87,15 +86,15 @@ TEST(ASTCIntegerSequenceCodecTest, TestGetCountsForRange) {
 // Test to make sure that we're calculating the number of bits needed to
 // encode a given number of values based on the range of the values.
 TEST(ASTCIntegerSequenceCodecTest, TestNumBitsForCounts) {
-  int trits = 0;
-  int quints = 0;
-  int bits = 0;
+  unsigned int trits = 0;
+  unsigned int quints = 0;
+  unsigned int bits = 0;
 
   // A range of one should have single bits, so n 1-bit values should be n bits.
   trits = 0;
   quints = 0;
   bits = 1;
-  for (int i = 0; i < 64; ++i) {
+  for (unsigned int i = 0; i < 64; ++i) {
     EXPECT_EQ(IntegerSequenceCodec::GetBitCount(i, trits, quints, bits), i);
     EXPECT_EQ(IntegerSequenceCodec::GetBitCountForRange(i, 1), i);
   }
@@ -104,8 +103,9 @@ TEST(ASTCIntegerSequenceCodecTest, TestNumBitsForCounts) {
   trits = 0;
   quints = 0;
   bits = 2;
-  for (int i = 0; i < 64; ++i) {
-    int bit_counts = IntegerSequenceCodec::GetBitCount(i, trits, quints, bits);
+  for (unsigned int i = 0; i < 64; ++i) {
+    unsigned int bit_counts =
+        IntegerSequenceCodec::GetBitCount(i, trits, quints, bits);
     EXPECT_EQ(bit_counts, 2 * i);
     EXPECT_EQ(IntegerSequenceCodec::GetBitCountForRange(i, 3), 2 * i);
   }
@@ -162,7 +162,7 @@ TEST(ASTCIntegerSequenceCodecTest, TestQuintCodec) {
   // Setup bit src/sink
   BitStream<UInt128> bit_sink;
 
-  const int kValueRange = 79;
+  const unsigned int kValueRange = 79;
   IntegerSequenceEncoder enc(kValueRange);
   enc.AddValue(3);
   enc.AddValue(79);
@@ -197,7 +197,7 @@ TEST(ASTCIntegerSequenceCodecTest, TestTritCodec) {
   // Setup bit src/sink
   BitStream<UInt128> bit_sink(encoded, 0);
 
-  const int kValueRange = 11;
+  const unsigned int kValueRange = 11;
   IntegerSequenceEncoder enc(kValueRange);
   enc.AddValue(7);
   enc.AddValue(5);
@@ -228,7 +228,7 @@ TEST(ASTCIntegerSequenceCodecTest, TestTritCodec) {
 // encode and decode integer sequences matches what we should expect out of the
 // reference ASTC encoder.
 TEST(ASTCIntegerSequenceCodecTest, TestDecodeThenEncode) {
-  std::vector<int> vals = {{ 16, 18, 17, 4, 7, 14, 10, 0 }};
+  std::vector<unsigned int> vals = {{16, 18, 17, 4, 7, 14, 10, 0}};
   const uint64_t kValEncoding = 0x2b9c83dc;
 
   BitStream<UInt128> bit_src(kValEncoding, 64);
@@ -257,7 +257,8 @@ TEST(ASTCIntegerSequenceCodecTest, TestDecodeThenEncode) {
 // Same as the previous test, except it uses a trit encoding rather than a
 // quint encoding.
 TEST(ASTCIntegerSequenceCodecTest, TestDecodeThenEncodeTrits) {
-  std::vector<int> vals = {{ 6, 0, 0, 2, 0, 0, 0, 0, 8, 0, 0, 0, 0, 8, 8, 0 }};
+  std::vector<unsigned int> vals = {
+      {6, 0, 0, 2, 0, 0, 0, 0, 8, 0, 0, 0, 0, 8, 8, 0}};
   const uint64_t kValEncoding = 0x0004c0100001006ULL;
 
   BitStream<UInt128> bit_src(kValEncoding, 64);
@@ -288,21 +289,22 @@ TEST(ASTCIntegerSequenceCodecTest, TestDecodeThenEncodeTrits) {
 // decoded)
 TEST(ASTCIntegerSequenceCodecTest, TestRandomReciprocation) {
   std::mt19937 mt(0xbad7357);
-  std::uniform_int_distribution<int> rand(0, 255);
+  std::uniform_int_distribution<unsigned int> rand(0, 255);
 
-  for (int test = 0; test < 1600; ++test) {
+  for (unsigned int test = 0; test < 1600; ++test) {
     // Generate a random number of values and a random range
-    int num_vals = 4 + rand(mt) % 44;  // Up to 48 weights in a grid
-    int range = 1 + rand(mt) % 63;
+    unsigned int num_vals = 4 + rand(mt) % 44;  // Up to 48 weights in a grid
+    unsigned int range = 1 + rand(mt) % 63;
 
     // If this produces a bit pattern larger than our buffer, then ignore
     // it... we already know what our bounds are for the integer sequences
-    int num_bits = IntegerSequenceCodec::GetBitCountForRange(num_vals, range);
+    unsigned int num_bits =
+        IntegerSequenceCodec::GetBitCountForRange(num_vals, range);
     if (num_bits >= 64) {
       continue;
     }
 
-    std::vector<int> generated_vals(num_vals);
+    std::vector<unsigned int> generated_vals(num_vals);
     for (auto& val : generated_vals) {
       val = rand(mt) % (range + 1);
     }
@@ -312,7 +314,7 @@ TEST(ASTCIntegerSequenceCodecTest, TestRandomReciprocation) {
 
     // Add them to the encoder
     IntegerSequenceEncoder enc(range);
-    for (int v : generated_vals) {
+    for (unsigned int v : generated_vals) {
       enc.AddValue(v);
     }
     enc.Encode(&bit_sink);

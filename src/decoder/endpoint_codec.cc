@@ -128,7 +128,7 @@ const typename ContainerType::value_type SquaredError(
   static_assert(std::is_signed<ValueTy>::value,
                 "Value type assumed to be signed to avoid branch below.");
   ValueTy result = ValueTy(0);
-  for (int i = 0; i < num_channels; ++i) {
+  for (size_t i = 0; i < num_channels; ++i) {
     ValueTy error = a[i] - b[i];
     result += error * error;
   }
@@ -284,7 +284,7 @@ class CEEncodingOption {
     // of the endpoints in order to determine whether or not we're going to
     // be using blue-contract mode.
     if (use_offset_mode_) {
-      for (int i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
+      for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
         BitTransferSigned(&unquantized_high[i], &unquantized_low[i]);
       }
     }
@@ -292,7 +292,7 @@ class CEEncodingOption {
     // Define variables as outlined in the ASTC spec C.2.14 for the RGB[A]
     // direct and base-offset modes
     int s0 = 0, s1 = 0;
-    for (int i = 0; i < 3; ++i) {
+    for (size_t i = 0; i < 3; ++i) {
       s0 += unquantized_low[i];
       s1 += unquantized_high[i];
     }
@@ -407,7 +407,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
   const auto inv_bc_high = InvertBlueContract(endpoint_high_rgba);
 
   RgbaColor direct_base, direct_offset;
-  for (int i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
+  for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
     direct_base[i] = endpoint_low_rgba[i];
     direct_offset[i] =
         Clamp(endpoint_high_rgba[i] - endpoint_low_rgba[i], -32, 31);
@@ -415,7 +415,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
   }
 
   RgbaColor inv_bc_base, inv_bc_offset;
-  for (int i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
+  for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
     // Remember, for blue-contract'd offset modes, the base is compared
     // against the second endpoint and not the first.
     inv_bc_base[i] = inv_bc_high[i];
@@ -431,7 +431,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
   // out of it.
 
   RgbaColor direct_base_swapped, direct_offset_swapped;
-  for (int i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
+  for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
     direct_base_swapped[i] = endpoint_high_rgba[i];
     direct_offset_swapped[i] =
         Clamp(endpoint_low_rgba[i] - endpoint_high_rgba[i], -32, 31);
@@ -439,7 +439,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
   }
 
   RgbaColor inv_bc_base_swapped, inv_bc_offset_swapped;
-  for (int i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
+  for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
     // Remember, for blue-contract'd offset modes, the base is compared
     // against the second endpoint and not the first. Hence, the swapped
     // version will compare the base against the first endpoint.

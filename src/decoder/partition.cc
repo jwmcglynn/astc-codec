@@ -33,13 +33,14 @@ namespace astc_codec {
 namespace {
 
 // The maximum number of partitions supported by ASTC is four.
-constexpr int kMaxNumSubsets = 4;
+constexpr unsigned int kMaxNumSubsets = 4;
 
 // Partition selection function based on the ASTC specification.
 // See section C.2.21
-int SelectASTCPartition(int seed, int x, int y, int z, int partitioncount,
-                        int num_pixels) {
-  if (partitioncount <= 1) {
+int SelectASTCPartition(unsigned int seed, unsigned int x, unsigned int y,
+                        unsigned int z, unsigned int partition_count,
+                        unsigned int num_pixels) {
+  if (partition_count <= 1) {
     return 0;
   }
 
@@ -49,7 +50,7 @@ int SelectASTCPartition(int seed, int x, int y, int z, int partitioncount,
     z <<= 1;
   }
 
-  seed += (partitioncount - 1) * 1024;
+  seed += (partition_count - 1) * 1024;
 
   uint32_t rnum = seed;
   rnum ^= rnum >> 15;
@@ -92,9 +93,9 @@ int SelectASTCPartition(int seed, int x, int y, int z, int partitioncount,
   int sh1, sh2, sh3;
   if (seed & 1) {
     sh1 = (seed & 2 ? 4 : 5);
-    sh2 = (partitioncount == 3 ? 6 : 5);
+    sh2 = (partition_count == 3 ? 6 : 5);
   } else {
-    sh1 = (partitioncount == 3 ? 6 : 5);
+    sh1 = (partition_count == 3 ? 6 : 5);
     sh2 = (seed & 2 ? 4 : 5);
   }
   sh3 = (seed & 0x10) ? sh1 : sh2;
@@ -123,10 +124,10 @@ int SelectASTCPartition(int seed, int x, int y, int z, int partitioncount,
   c &= 0x3F;
   d &= 0x3F;
 
-  if (partitioncount <= 3) {
+  if (partition_count <= 3) {
     d = 0;
   }
-  if (partitioncount <= 2) {
+  if (partition_count <= 2) {
     c = 0;
   }
 
@@ -160,7 +161,7 @@ struct PartitionHasher {
     // whether or not two partitions are different and don't care how different
     // they are.
     std::array<int, kMaxNumSubsets> mapping {{ -1, -1, -1, -1 }};
-    int next_subset = 0;
+    unsigned int next_subset = 0;
     for (int subset : part.assignment) {
       if (mapping[subset] < 0) {
         mapping[subset] = next_subset++;
@@ -208,7 +209,7 @@ class PartitionTree {
 
   // Search for the k-nearest partitions that are closest to part based on
   // the result of PartitionMetric
-  void Search(const Partition& part, int k,
+  void Search(const Partition& part, size_t k,
               std::vector<const Partition*>* const results,
               std::vector<int>* const distances) const {
     ResultHeap heap(k);
@@ -256,7 +257,7 @@ class PartitionTree {
     PartitionTreeNode(const std::vector<Partition> &parts,
                       const std::vector<int> &part_indices)
         : split_dist(-1) {
-      assert(part_indices.size() > 0);
+      assert(!part_indices.empty());
 
       right.reset(nullptr);
       left.reset(nullptr);
@@ -268,7 +269,7 @@ class PartitionTree {
       // Calculate the distances of the remaining nodes against the vantage
       // point.
       std::vector<std::pair<int, int>> part_dists;
-      for (int i = 1; i < part_indices.size(); ++i) {
+      for (size_t i = 1; i < part_indices.size(); ++i) {
         const int idx = part_indices[i];
         const int dist = PartitionMetric(vantage_point, parts[idx]);
         if (dist > 0) {
@@ -362,17 +363,17 @@ class PartitionTree {
 
 // A helper function that generates all of the partitions for each number of
 // subsets in ASTC blocks and stores them in a PartitionTree for fast retrieval.
-const int kNumASTCPartitionIDBits = 10;
+const unsigned int kNumASTCPartitionIDBits = 10;
 PartitionTree GenerateASTCPartitionTree(Footprint footprint) {
   std::unordered_set<Partition, PartitionHasher> parts;
-  for (int num_parts = 2; num_parts <= kMaxNumSubsets; ++num_parts) {
-    for (int id = 0; id < (1 << kNumASTCPartitionIDBits); ++id) {
+  for (unsigned int num_parts = 2; num_parts <= kMaxNumSubsets; ++num_parts) {
+    for (unsigned int id = 0; id < (1 << kNumASTCPartitionIDBits); ++id) {
       Partition part = GetASTCPartition(footprint, num_parts, id);
 
       // Make sure we're not using a degenerate partition assignment that wastes
       // an endpoint pair...
       bool valid_part = true;
-      for (int i = 0; i < num_parts; ++i) {
+      for (unsigned int i = 0; i < num_parts; ++i) {
         if (std::find(part.assignment.begin(), part.assignment.end(), i) ==
             part.assignment.end()) {
           valid_part = false;
@@ -391,7 +392,7 @@ PartitionTree GenerateASTCPartitionTree(Footprint footprint) {
 
 // To avoid needing any fancy boilerplate for mapping from a width, height
 // tuple, we can define a simple encoding for the block mode:
-constexpr int EncodeDims(int width, int height) {
+constexpr unsigned int EncodeDims(unsigned int width, unsigned int height) {
   return (width << 16) | height;
 }
 
@@ -408,8 +409,8 @@ int PartitionMetric(const Partition& a, const Partition& b) {
   UTILS_RELEASE_ASSERT(a.num_parts <= kMaxNumSubsets);
   UTILS_RELEASE_ASSERT(b.num_parts <= kMaxNumSubsets);
 
-  const int w = a.footprint.Width();
-  const int h = b.footprint.Height();
+  const unsigned int w = a.footprint.Width();
+  const unsigned int h = b.footprint.Height();
 
   struct PairCount {
     int a;
@@ -427,9 +428,9 @@ int PartitionMetric(const Partition& a, const Partition& b) {
   // The maximum number of subsets in an ASTC block is four, meaning that
   // between the two partitions, we can have up to sixteen different pairs.
   std::array<PairCount, 16> pair_counts;
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      const int idx = y * 4 + x;
+  for (unsigned int y = 0; y < 4; ++y) {
+    for (unsigned int x = 0; x < 4; ++x) {
+      const unsigned int idx = y * 4 + x;
       pair_counts[idx].a = x;
       pair_counts[idx].b = y;
       pair_counts[idx].count = 0;
@@ -437,9 +438,9 @@ int PartitionMetric(const Partition& a, const Partition& b) {
   }
 
   // Count how many times we see each pair of assigned values (order matters!)
-  for (int y = 0; y < h; ++y) {
-    for (int x = 0; x < w; ++x) {
-      const int idx = y * w + x;
+  for (unsigned int y = 0; y < h; ++y) {
+    for (unsigned int x = 0; x < w; ++x) {
+      const unsigned int idx = y * w + x;
 
       const int a_val = a.assignment[idx];
       const int b_val = b.assignment[idx];
@@ -467,7 +468,7 @@ int PartitionMetric(const Partition& a, const Partition& b) {
   int pixels_matched = 0;
   for (const auto& pair_count : pair_counts) {
     bool is_assigned = false;
-    for (int i = 0; i < kMaxNumSubsets; ++i) {
+    for (unsigned int i = 0; i < kMaxNumSubsets; ++i) {
       is_assigned |= assigned.at(pair_count.a).at(i);
       is_assigned |= assigned.at(i).at(pair_count.b);
     }
@@ -484,14 +485,12 @@ int PartitionMetric(const Partition& a, const Partition& b) {
 }
 
 // Generates the partition assignment for the given block attributes.
-Partition GetASTCPartition(const Footprint& footprint, int num_parts,
-                           int partition_id) {
+Partition GetASTCPartition(const Footprint& footprint, unsigned int num_parts,
+                           unsigned int partition_id) {
   // Partitions must have at least one subset but may have at most four
-  assert(num_parts >= 0);
   assert(num_parts <= kMaxNumSubsets);
 
   // Partition ID can be no more than 10 bits.
-  assert(partition_id >= 0);
   assert(partition_id < 1 << 10);
 
   Partition part = {footprint, num_parts, partition_id, /* assignment = */ {}};
@@ -499,8 +498,8 @@ Partition GetASTCPartition(const Footprint& footprint, int num_parts,
 
   // Maintain column-major order so that we match all of the image processing
   // algorithms that depend on this class.
-  for (int y = 0; y < footprint.Height(); ++y) {
-    for (int x = 0; x < footprint.Width(); ++x) {
+  for (unsigned int y = 0; y < footprint.Height(); ++y) {
+    for (unsigned int x = 0; x < footprint.Width(); ++x) {
       const int p = SelectASTCPartition(partition_id, x, y, 0, num_parts,
                                         footprint.NumPixels());
       part.assignment.push_back(p);
@@ -511,9 +510,9 @@ Partition GetASTCPartition(const Footprint& footprint, int num_parts,
 }
 
 const std::vector<const Partition*> FindKClosestASTCPartitions(
-    const Partition& candidate, int k) {
-  const int encoded_dims = EncodeDims(candidate.footprint.Width(),
-                                      candidate.footprint.Height());
+    const Partition& candidate, unsigned int k) {
+  const unsigned int encoded_dims =
+      EncodeDims(candidate.footprint.Width(), candidate.footprint.Height());
 
   int index = 0;
   switch (encoded_dims) {

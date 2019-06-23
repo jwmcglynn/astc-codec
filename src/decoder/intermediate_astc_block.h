@@ -58,18 +58,18 @@ struct IntermediateEndpointData {
 // all of the unpacked ASTC information. It is used as a staging area
 // for the information that is later Pack()'d into a PhysicalASTCBlock.
 struct IntermediateBlockData {
-  int weight_grid_dim_x;
-  int weight_grid_dim_y;
-  int weight_range;
+  unsigned int weight_grid_dim_x;
+  unsigned int weight_grid_dim_y;
+  unsigned int weight_range;
 
   // Quantized, non-interpolated weights
-  std::vector<int> weights;
+  std::vector<unsigned int> weights;
 
   // The 10-bit partition ID if we need one
-  base::Optional<int> partition_id;
+  base::Optional<unsigned int> partition_id;
 
   // The dual-plane channel in [0, 3] if it exists.
-  base::Optional<int> dual_plane_channel;
+  base::Optional<unsigned int> dual_plane_channel;
 
   // The quantized/encoded endpoint values for this block. The range of each
   // endpoint value is specified by |endpoint_range|, if it exists. If not, the

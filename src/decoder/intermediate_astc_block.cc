@@ -60,6 +60,8 @@ base::UInt128 PackVoidExtentBlock(uint16_t r, uint16_t g, uint16_t b,
 
 base::Optional<std::string> GetEncodedWeightRange(int range,
                                                   std::array<int, 3>* const r) {
+  *r = {};
+
   const std::array<std::array<int, 3>, 12> kValidRangeEncodings =
       {{ {{ 0, 1, 0 }}, {{ 1, 1, 0 }}, {{ 0, 0, 1 }},
          {{ 1, 0, 1 }}, {{ 0, 1, 1 }}, {{ 1, 1, 1 }},
@@ -208,8 +210,9 @@ bool SharedEndpointModes(const IntermediateBlockData& data) {
 // dual plane info is stored in the ASTC block.
 int ExtraConfigBitPosition(const IntermediateBlockData& data) {
   const bool has_dual_channel = data.dual_plane_channel.hasValue();
-  const int num_weights = data.weight_grid_dim_x * data.weight_grid_dim_y *
-      (has_dual_channel ? 2 : 1);
+  const unsigned int num_weights = data.weight_grid_dim_x *
+                                   data.weight_grid_dim_y *
+                                   (has_dual_channel ? 2 : 1);
   const int num_weight_bits =
       IntegerSequenceCodec::GetBitCountForRange(num_weights, data.weight_range);
 
@@ -252,7 +255,8 @@ base::Optional<IntermediateBlockData> UnpackIntermediateBlock(
 
   IntegerSequenceDecoder color_decoder(pb.ColorValuesRange().value());
   const int num_colors_in_block = pb.NumColorValues().value();
-  std::vector<int> colors = color_decoder.Decode(num_colors_in_block, &bit_src);
+  std::vector<unsigned int> colors =
+      color_decoder.Decode(num_colors_in_block, &bit_src);
 
   // Decode simple info
   const auto weight_dims = pb.WeightGridDims();
@@ -286,7 +290,7 @@ base::Optional<IntermediateBlockData> UnpackIntermediateBlock(
   bit_src = base::BitStream<base::UInt128>(weight_bits, 128);
 
   IntegerSequenceDecoder weight_decoder(data.weight_range);
-  int num_weights = data.weight_grid_dim_x * data.weight_grid_dim_y;
+  unsigned int num_weights = data.weight_grid_dim_x * data.weight_grid_dim_y;
   num_weights *= pb.IsDualPlane() ? 2 : 1;
   data.weights = weight_decoder.Decode(num_weights, &bit_src);
 
@@ -395,6 +399,10 @@ base::Optional<std::string> Pack(const IntermediateBlockData& data,
     return std::string("Incorrect number of weights!");
   }
 
+  if (data.endpoints.empty()) {
+    return std::string("Block has no endpoints.");
+  }
+
   // If it's not a void extent block, then it gets a bit more tricky...
   base::BitStream<base::UInt128> bit_sink;
 
@@ -407,7 +415,7 @@ base::Optional<std::string> Pack(const IntermediateBlockData& data,
   }
 
   // Next, we place the number of partitions minus one.
-  const int num_partitions = data.endpoints.size();
+  const unsigned int num_partitions = data.endpoints.size();
   bit_sink.PutBits(num_partitions - 1, 2);
 
   // If we have more than one partition, then we also have a partition ID.
@@ -427,7 +435,7 @@ base::Optional<std::string> Pack(const IntermediateBlockData& data,
   }
   weight_enc.Encode(&weight_sink);
 
-  const int num_weight_bits = weight_sink.Bits();
+  const uint32_t num_weight_bits = weight_sink.Bits();
   assert(num_weight_bits ==
            IntegerSequenceCodec::GetBitCountForRange(
                data.weights.size(), data.weight_range));
@@ -436,7 +444,6 @@ base::Optional<std::string> Pack(const IntermediateBlockData& data,
   int extra_config = 0;
 
   // Determine if all endpoint pairs share the same endpoint mode
-  assert(data.endpoints.size() > 0);
   bool shared_endpoint_mode = SharedEndpointModes(data);
 
   // The first part of the endpoint mode (CEM) comes directly after the
