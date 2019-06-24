@@ -298,15 +298,16 @@ class DualChannelStat : public Stat {
   explicit DualChannelStat(const std::vector<IntermediateBlockData>* blocks,
                            size_t total)
       : Stat(blocks, total),
-        dual_channels_(IterateBlocks(
-            std::vector<unsigned int>(), [](const IntermediateBlockData& data,
-                                            std::vector<unsigned int>&& input) {
-              auto result = input;
-              if (data.dual_plane_channel) {
-                result.push_back(data.dual_plane_channel.value());
-              }
-              return result;
-            })) {}
+        dual_channels_(IterateBlocks(std::vector<unsigned int>(),
+                                     [](const IntermediateBlockData& data,
+                                        std::vector<unsigned int> && input) {
+                                       auto result = input;
+                                       if (data.dual_plane_channel) {
+                                         result.push_back(
+                                             data.dual_plane_channel.value());
+                                       }
+                                       return result;
+                                     })) {}
 
   std::ostream& PrintToStream(std::ostream& out) const override {
     // Similar to the number of partitions, the number of dual plane blocks

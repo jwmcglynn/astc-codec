@@ -160,10 +160,9 @@ TEST(QuantizationTest, TestIdentity) {
 TEST(QuantizationTest, TestMonotonicBitPacking) {
   for (unsigned int num_bits = 3; num_bits < 8; ++num_bits) {
     const unsigned int range = (1 << num_bits) - 1;
-    int last_quant_val = -1;
-    for (int i = 0; i < 256; ++i) {
-      const unsigned int quant_val =
-          static_cast<int>(QuantizeCEValueToRange(i, range));
+    unsigned int last_quant_val = 0;
+    for (unsigned int i = 0; i < 256; ++i) {
+      const unsigned int quant_val = QuantizeCEValueToRange(i, range);
       EXPECT_LE(last_quant_val, quant_val);
       last_quant_val = quant_val;
     }
@@ -172,9 +171,9 @@ TEST(QuantizationTest, TestMonotonicBitPacking) {
     EXPECT_EQ(last_quant_val, range);
 
     if (range <= kWeightRangeMaxValue) {
-      last_quant_val = -1;
+      last_quant_val = 0;
       for (unsigned int i = 0; i <= 64; ++i) {
-        const int quant_val = static_cast<int>(QuantizeWeightToRange(i, range));
+        const unsigned int quant_val = QuantizeWeightToRange(i, range);
         EXPECT_LE(last_quant_val, quant_val);
         last_quant_val = quant_val;
       }
@@ -186,8 +185,8 @@ TEST(QuantizationTest, TestMonotonicBitPacking) {
 // Make sure that bit quantization reflects that quantized values below the bit
 // replication threshold get mapped to zero
 TEST(QuantizationTest, TestSmallBitPacking) {
-  for (int num_bits = 1; num_bits <= 8; ++num_bits) {
-    const unsigned int range = (1 << static_cast<unsigned int>(num_bits)) - 1;
+  for (unsigned int num_bits = 1; num_bits <= 8; ++num_bits) {
+    const unsigned int range = (1 << num_bits) - 1;
 
     // The largest number that should map to zero is one less than half of the
     // smallest representation w.r.t. range. For example: if we have a range
@@ -201,18 +200,21 @@ TEST(QuantizationTest, TestSmallBitPacking) {
     // should map to zero.
 
     if (range >= kEndpointRangeMinValue) {
-      constexpr int cev_bits = 8;
-      const int half_max_quant_bits = std::max(0, cev_bits - num_bits - 1);
-      const int largest_cev_to_zero = (1 << half_max_quant_bits) - 1;
+      constexpr unsigned int cev_bits = 8;
+      const unsigned int half_max_quant_bits =
+          num_bits < cev_bits ? cev_bits - num_bits - 1 : 0;
+      const unsigned int largest_cev_to_zero = (1 << half_max_quant_bits) - 1;
       EXPECT_EQ(QuantizeCEValueToRange(largest_cev_to_zero, range), 0)
           << " Largest CEV to zero: " << largest_cev_to_zero
           << " Range: " << range;
     }
 
     if (range <= kWeightRangeMaxValue) {
-      constexpr int weight_bits = 6;
-      const int half_max_quant_bits = std::max(0, weight_bits - num_bits - 1);
-      const int largest_weight_to_zero = (1 << half_max_quant_bits) - 1;
+      constexpr unsigned int weight_bits = 6;
+      const unsigned int half_max_quant_bits =
+          num_bits < weight_bits ? weight_bits - num_bits - 1 : 0;
+      const unsigned int largest_weight_to_zero =
+          (1 << half_max_quant_bits) - 1;
       EXPECT_EQ(QuantizeWeightToRange(largest_weight_to_zero, range), 0)
           << " Largest weight to zero: " << largest_weight_to_zero
           << " Range: " << range;

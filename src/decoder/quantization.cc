@@ -242,8 +242,8 @@ class QuantizationMap {
   }
 };
 
-template<unsigned int (*UnquantizationFunc)(unsigned int, unsigned int,
-                                            unsigned int)>
+template <unsigned int (*UnquantizationFunc)(unsigned int, unsigned int,
+                                             unsigned int)>
 class TritQuantizationMap : public QuantizationMap {
  public:
   explicit TritQuantizationMap(unsigned int range) : QuantizationMap() {
@@ -264,8 +264,8 @@ class TritQuantizationMap : public QuantizationMap {
   }
 };
 
-template<unsigned int (*UnquantizationFunc)(unsigned int, unsigned int,
-                                            unsigned int)>
+template <unsigned int (*UnquantizationFunc)(unsigned int, unsigned int,
+                                             unsigned int)>
 class QuintQuantizationMap : public QuantizationMap {
  public:
   explicit QuintQuantizationMap(unsigned int range) : QuantizationMap() {
@@ -286,7 +286,7 @@ class QuintQuantizationMap : public QuantizationMap {
   }
 };
 
-template<unsigned int TotalUnquantizedBits>
+template <unsigned int TotalUnquantizedBits>
 class BitQuantizationMap : public QuantizationMap {
  public:
   explicit BitQuantizationMap<TotalUnquantizedBits>(unsigned int range)
@@ -377,22 +377,21 @@ static const QuantizationMap* GetQuantMapForWeightRange(unsigned int r) {
   // Similar to endpoint quantization, weights can also be stored using trits,
   // quints, or bits. Here we store the quantization maps for each of the ranges
   // that are supported by such an encoding.
-  static const auto* const kASTCWeightQuantization =
-      new std::map<unsigned int, QMap>{
-          {1, QMap(new BitQuantizationMap<6>(1))},                            //
-          {2, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(2))},    //
-          {3, QMap(new BitQuantizationMap<6>(3))},                            //
-          {4, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(4))},  //
-          {5, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(5))},    //
-          {7, QMap(new BitQuantizationMap<6>(7))},                            //
-          {9, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(9))},  //
-          {11, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(11))},  //
-          {15, QMap(new BitQuantizationMap<6>(15))},                          //
-          {19,
-           QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(19))},    //
-          {23, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(23))},  //
-          {31, QMap(new BitQuantizationMap<6>(31))},                          //
-      };
+  static const auto* const kASTCWeightQuantization = new std::map<unsigned int,
+                                                                  QMap>{
+      {1, QMap(new BitQuantizationMap<6>(1))},                              //
+      {2, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(2))},      //
+      {3, QMap(new BitQuantizationMap<6>(3))},                              //
+      {4, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(4))},    //
+      {5, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(5))},      //
+      {7, QMap(new BitQuantizationMap<6>(7))},                              //
+      {9, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(9))},    //
+      {11, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(11))},    //
+      {15, QMap(new BitQuantizationMap<6>(15))},                            //
+      {19, QMap(new QuintQuantizationMap<GetUnquantizedQuintWeight>(19))},  //
+      {23, QMap(new TritQuantizationMap<GetUnquantizedTritWeight>(23))},    //
+      {31, QMap(new BitQuantizationMap<6>(31))},                            //
+  };
 
   assert(r < 32);
   auto itr = kASTCWeightQuantization->upper_bound(r);

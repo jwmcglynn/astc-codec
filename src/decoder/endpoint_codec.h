@@ -41,7 +41,7 @@ enum class EndpointEncodingMode {
 
 // Returns the number of values in the encoded endpoint pair after encoding
 // to a specific high-level encoding mode.
-constexpr int NumValuesForEncodingMode(EndpointEncodingMode mode) {
+constexpr size_t NumValuesForEncodingMode(EndpointEncodingMode mode) {
   return
       mode == EndpointEncodingMode::kDirectLuma ? 2 :
       mode == EndpointEncodingMode::kDirectLumaAlpha ? 4 :

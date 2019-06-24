@@ -33,7 +33,7 @@ TEST(BottomN, Sort) {
   {
     BottomN<int> heap(10);
     EXPECT_TRUE(heap.Empty());
-    int list[] = { 1,2 };
+    int list[] = {1, 2};
     pushAll(heap, list);
 
     EXPECT_EQ(heap.Size(), 2);
@@ -54,7 +54,7 @@ TEST(BottomN, Sort) {
 TEST(BottomN, Bounds) {
   {
     BottomN<int> heap(4);
-    int list[] = { 1, 2, 3, 4 };
+    int list[] = {1, 2, 3, 4};
     pushAll(heap, list);
     EXPECT_EQ(heap.Size(), 4);
 
@@ -66,11 +66,11 @@ TEST(BottomN, Bounds) {
 
   {
     BottomN<int> heap(4);
-    int list[] = { 4, 3, 2,1 };
+    int list[] = {4, 3, 2, 1};
     pushAll(heap, list);
     EXPECT_EQ(heap.Size(), 4);
 
-    int list2[] = { 4,4,4,4 };
+    int list2[] = {4, 4, 4, 4};
     pushAll(heap, list2);
     EXPECT_EQ(heap.Size(), 4);
 
@@ -79,7 +79,7 @@ TEST(BottomN, Bounds) {
 
   {
     BottomN<int> heap(4);
-    int list[] = { 4, 3, 2, 1 };
+    int list[] = {4, 3, 2, 1};
     pushAll(heap, list);
     EXPECT_EQ(heap.Size(), 4);
 
