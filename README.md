@@ -37,7 +37,7 @@ astc-codec has been tested on Mac and Linux.
 ### Run Tests
 
 ```
-bazel test //...
+bazel test //src/...
 ```
 
 ### With CMake
