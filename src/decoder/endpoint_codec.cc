@@ -44,14 +44,15 @@ void BlueContract(ArrayType* const cptr) {
 template<typename ArrayType>
 ArrayType InvertBlueContract(const ArrayType& c) {
   ArrayType result = c;
-  result[0] = Clamp(2 * c[0] - c[2], 0, 255);
-  result[1] = Clamp(2 * c[1] - c[2], 0, 255);
+  const int c2 = static_cast<int>(c[2]);
+  result[0] = static_cast<unsigned int>(Clamp(int(2 * c[0]) - c2, 0, 255));
+  result[1] = static_cast<unsigned int>(Clamp(int(2 * c[1]) - c2, 0, 255));
   return result;
 }
 
 // This is the 'bit_transfer_signed' function defined in Section C.2.14 of the
 // ASTC specification.
-void BitTransferSigned(int* const a, int* const b) {
+void BitTransferSigned(unsigned int* const a, unsigned int* const b) {
   *b >>= 1;
   *b |= *a & 0x80;
   *a >>= 1;
@@ -61,45 +62,51 @@ void BitTransferSigned(int* const a, int* const b) {
   }
 }
 
-// Takes two values, |a| in the range [-32, 31], and |b| in the range [0, 255],
-// and returns the two values in [0, 255] that will reconstruct |a| and |b| when
-// passed to the BitTransferSigned function.
-void InvertBitTransferSigned(int* const a, int* const b) {
-  assert(*a >= -32); assert(*a < 32);
-  assert(*b >= 0);   assert(*b < 256);
+unsigned int ClampInvertBitTransferA(unsigned int a, unsigned int b) {
+  const int clamped_offset = Clamp(int(a) - int(b), -32, 31);
+  return static_cast<unsigned int>(clamped_offset);
+}
 
-  if (*a < 0) {
+// Takes two values, |a|, interpreted as int, in the range [-32, 31], and |b|
+// in the range [0, 255]. Returns the two values in [0, 255] that will
+// reconstruct |a| and |b| when passed to the BitTransferSigned function.
+void InvertBitTransferSigned(unsigned int* const a, unsigned int* const b) {
+  const int ai = static_cast<int>(*a);
+  assert(ai >= -32); assert(ai < 32);
+  assert(*b < 256);
+
+  if (ai < 0) {
     *a += 0x40;
   }
   *a <<= 1;
   *a |= (*b & 0x80);
   *b <<= 1;
-  *b &= 0xff;
+  *b &= 0xFF;
 }
 
 template<typename ContainerType>
-void Quantize(ContainerType* const c, size_t max_value) {
+void Quantize(ContainerType* const c, unsigned int max_value) {
   for (auto& x : *c) {
     x = QuantizeCEValueToRange(x, max_value);
   }
 }
 
 template<typename ArrayType>
-ArrayType QuantizeColor(const ArrayType& c, size_t max_value) {
+ArrayType QuantizeColor(const ArrayType& c, unsigned int max_value) {
   ArrayType result = c;
   Quantize(&result, max_value);
   return result;
 }
 
 template<typename ContainerType>
-void Unquantize(ContainerType* const c, size_t max_value) {
+void Unquantize(ContainerType* const c, unsigned int max_value) {
   for (auto& x : *c) {
     x = UnquantizeCEValueFromRange(x, max_value);
   }
 }
 
 template<typename ArrayType>
-ArrayType UnquantizeColor(const ArrayType& c, size_t max_value) {
+ArrayType UnquantizeColor(const ArrayType& c, unsigned int max_value) {
   ArrayType result = c;
   Unquantize(&result, max_value);
   return result;
@@ -107,7 +114,7 @@ ArrayType UnquantizeColor(const ArrayType& c, size_t max_value) {
 
 // Returns the average of the three RGB channels.
 template<typename ContainerType>
-const int AverageRGB(const ContainerType& c) {
+const unsigned int AverageRGB(const ContainerType& c) {
   // Each channel can be in the range [0, 255], and we need to divide by three.
   // However, we want to round the error properly. Both (x + 1) / 3 and
   // (x + 2) / 3 are relatively imprecise when it comes to rounding, so instead
@@ -135,7 +142,7 @@ const typename ContainerType::value_type SquaredError(
   return result;
 }
 
-constexpr int MaxValuesForModes(ColorEndpointMode mode_a,
+constexpr unsigned int MaxValuesForModes(ColorEndpointMode mode_a,
                                 ColorEndpointMode mode_b) {
   return (NumColorValuesForEndpointMode(mode_a) >
           NumColorValuesForEndpointMode(mode_b))
@@ -151,12 +158,12 @@ constexpr int MaxValuesForModes(ColorEndpointMode mode_a,
 // quantization value stored in |max_value|
 bool EncodeColorsLuma(const RgbaColor& endpoint_low,
                       const RgbaColor& endpoint_high,
-                      int max_value, ColorEndpointMode* const astc_mode,
+                      unsigned int max_value, ColorEndpointMode* const astc_mode,
                       std::vector<int>* const vals) {
   assert(vals->size() ==
          NumValuesForEncodingMode(EndpointEncodingMode::kDirectLuma));
-  int avg1 = AverageRGB(endpoint_low);
-  int avg2 = AverageRGB(endpoint_high);
+  unsigned int avg1 = AverageRGB(endpoint_low);
+  unsigned int avg2 = AverageRGB(endpoint_high);
 
   // For the offset mode, L1 is strictly greater than L2, so if we are using
   // it to encode the color values, we need to swap the weights and
@@ -172,14 +179,14 @@ bool EncodeColorsLuma(const RgbaColor& endpoint_low,
   // value, and the high order two bits of the second value. The low order
   // six bits of the second value are used as the (strictly positive) offset
   // from the first value.
-  const int offset = std::min(avg2 - avg1, 0x3F);
-  const int quant_off_low =
+  const unsigned int offset = std::min(avg2 - avg1, 0x3Fu);
+  const unsigned int quant_off_low =
       QuantizeCEValueToRange((avg1 & 0x3F) << 2, max_value);
-  const int quant_off_high =
+  const unsigned int quant_off_high =
       QuantizeCEValueToRange((avg1 & 0xC0) | offset, max_value);
 
-  const int quant_low = QuantizeCEValueToRange(avg1, max_value);
-  const int quant_high = QuantizeCEValueToRange(avg2, max_value);
+  const unsigned int quant_low = QuantizeCEValueToRange(avg1, max_value);
+  const unsigned int quant_high = QuantizeCEValueToRange(avg2, max_value);
 
   RgbaColor unquant_off_low, unquant_off_high;
   RgbaColor unquant_low, unquant_high;
@@ -391,7 +398,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
                       int max_value, bool with_alpha,
                       ColorEndpointMode* const astc_mode,
                       std::vector<int>* const vals) {
-  const int num_channels = with_alpha ? std::tuple_size<RgbaColor>::value : 3;
+  const size_t num_channels = with_alpha ? std::tuple_size<RgbaColor>::value : 3;
   // The difficulty of encoding into this mode is determining whether or
   // not we'd like to use the 'blue contract' function to reconstruct
   // the endpoints and whether or not we'll be more accurate by using the
@@ -409,8 +416,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
   RgbaColor direct_base, direct_offset;
   for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
     direct_base[i] = endpoint_low_rgba[i];
-    direct_offset[i] =
-        Clamp(endpoint_high_rgba[i] - endpoint_low_rgba[i], -32, 31);
+    direct_offset[i] = ClampInvertBitTransferA(endpoint_high_rgba[i], endpoint_low_rgba[i]);
     InvertBitTransferSigned(&direct_offset[i], &direct_base[i]);
   }
 
@@ -419,7 +425,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
     // Remember, for blue-contract'd offset modes, the base is compared
     // against the second endpoint and not the first.
     inv_bc_base[i] = inv_bc_high[i];
-    inv_bc_offset[i] = Clamp(inv_bc_low[i] - inv_bc_high[i], -32, 31);
+    inv_bc_offset[i] = ClampInvertBitTransferA(inv_bc_low[i], inv_bc_high[i]);
     InvertBitTransferSigned(&inv_bc_offset[i], &inv_bc_base[i]);
   }
 
@@ -434,7 +440,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
   for (size_t i = 0; i < std::tuple_size<RgbaColor>::value; ++i) {
     direct_base_swapped[i] = endpoint_high_rgba[i];
     direct_offset_swapped[i] =
-        Clamp(endpoint_low_rgba[i] - endpoint_high_rgba[i], -32, 31);
+        ClampInvertBitTransferA(endpoint_low_rgba[i], endpoint_high_rgba[i]);
     InvertBitTransferSigned(&direct_offset_swapped[i], &direct_base_swapped[i]);
   }
 
@@ -444,7 +450,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
     // against the second endpoint and not the first. Hence, the swapped
     // version will compare the base against the first endpoint.
     inv_bc_base_swapped[i] = inv_bc_low[i];
-    inv_bc_offset_swapped[i] = Clamp(inv_bc_high[i] - inv_bc_low[i], -32, 31);
+    inv_bc_offset_swapped[i] = ClampInvertBitTransferA(inv_bc_high[i], inv_bc_low[i]);
     InvertBitTransferSigned(&inv_bc_offset_swapped[i], &inv_bc_base_swapped[i]);
   }
 
@@ -511,12 +517,12 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
     auto base = pair.UnquantizedLow();
     auto offset = pair.UnquantizedHigh();
 
-    for (int i = 0; i < num_channels; ++i) {
+    for (size_t i = 0; i < num_channels; ++i) {
       BitTransferSigned(&offset[i], &base[i]);
-      offset[i] = Clamp(base[i] + offset[i], 0, 255);
+      offset[i] = Clamp(base[i] + offset[i], 0u, 255u);
     }
 
-    int base_offset_error = 0;
+    unsigned int base_offset_error = 0;
     // If we swapped the endpoints going in, then without blue contract
     // we should be comparing the base against the high endpoint.
     if (swapped) {
@@ -544,7 +550,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
     auto base = pair.UnquantizedLow();
     auto offset = pair.UnquantizedHigh();
 
-    for (int i = 0; i < num_channels; ++i) {
+    for (size_t i = 0; i < num_channels; ++i) {
       BitTransferSigned(&offset[i], &base[i]);
       offset[i] = Clamp(base[i] + offset[i], 0, 255);
     }
@@ -552,7 +558,7 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
     BlueContract(&base);
     BlueContract(&offset);
 
-    int sq_bc_error = 0;
+    unsigned int sq_bc_error = 0;
     // Remember, for blue-contract'd offset modes, the base is compared
     // against the second endpoint and not the first. So, we compare
     // against the first if we swapped the endpoints going in.
@@ -614,31 +620,31 @@ bool EncodeColorsRGBA(const RgbaColor& endpoint_low_rgba,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool UsesBlueContract(int max_value, ColorEndpointMode mode,
-                      const std::vector<int>& vals) {
+bool UsesBlueContract(unsigned int max_value, ColorEndpointMode mode,
+                      const std::vector<unsigned int>& vals) {
   assert(vals.size() >= NumColorValuesForEndpointMode(mode));
 
   switch (mode) {
     case ColorEndpointMode::kLDRRGBDirect:
     case ColorEndpointMode::kLDRRGBADirect: {
-      constexpr int kNumVals = MaxValuesForModes(
+      constexpr unsigned int kNumVals = MaxValuesForModes(
           ColorEndpointMode::kLDRRGBDirect, ColorEndpointMode::kLDRRGBADirect);
-      std::array<int, kNumVals> v {};
+      std::array<unsigned int, kNumVals> v {};
       std::copy(vals.begin(), vals.end(), v.begin());
       Unquantize(&v, max_value);
 
-      const int s0 = v[0] + v[2] + v[4];
-      const int s1 = v[1] + v[3] + v[5];
+      const unsigned int s0 = v[0] + v[2] + v[4];
+      const unsigned int s1 = v[1] + v[3] + v[5];
 
       return s0 > s1;
     }
 
     case ColorEndpointMode::kLDRRGBBaseOffset:
     case ColorEndpointMode::kLDRRGBABaseOffset: {
-      constexpr int kNumVals = MaxValuesForModes(
+      constexpr unsigned int kNumVals = MaxValuesForModes(
           ColorEndpointMode::kLDRRGBBaseOffset,
           ColorEndpointMode::kLDRRGBABaseOffset);
-      std::array<int, kNumVals> v {};
+      std::array<unsigned int, kNumVals> v {};
       std::copy(vals.begin(), vals.end(), v.begin());
       Unquantize(&v, max_value);
 
@@ -668,8 +674,8 @@ bool EncodeColorsForMode(
 
     case EndpointEncodingMode::kDirectLumaAlpha: {
       // TODO(google): See if luma-alpha base-offset is better
-      const int avg1 = AverageRGB(endpoint_low_rgba);
-      const int avg2 = AverageRGB(endpoint_high_rgba);
+      const unsigned int avg1 = AverageRGB(endpoint_low_rgba);
+      const unsigned int avg2 = AverageRGB(endpoint_high_rgba);
 
       (*vals)[0] = QuantizeCEValueToRange(avg1, max_value);
       (*vals)[1] = QuantizeCEValueToRange(avg2, max_value);
@@ -687,10 +693,10 @@ bool EncodeColorsForMode(
       // Similar to luma base-offset, the scaled value is strictly less than
       // the base value here according to the decode procedure. In this case,
       // if the base is larger than the scale then we need to swap.
-      int num_channels_ge = 0;
-      for (int i = 0; i < 3; ++i) {
+      unsigned int num_channels_ge = 0;
+      for (unsigned int i = 0; i < 3; ++i) {
         num_channels_ge +=
-            static_cast<int>(endpoint_high_rgba[i] >= endpoint_low_rgba[i]);
+            static_cast<unsigned int>(endpoint_high_rgba[i] >= endpoint_low_rgba[i]);
       }
 
       if (num_channels_ge < 2) {
@@ -756,15 +762,15 @@ bool EncodeColorsForMode(
 
 // These decoding procedures follow the code outlined in Section C.2.14 of
 // the ASTC specification.
-void DecodeColorsForMode(const std::vector<int>& vals,
-                         int max_value, ColorEndpointMode mode,
+void DecodeColorsForMode(const std::vector<unsigned int>& vals,
+                         unsigned int max_value, ColorEndpointMode mode,
                          RgbaColor* const endpoint_low_rgba,
                          RgbaColor* const endpoint_high_rgba) {
   assert(vals.size() >= NumColorValuesForEndpointMode(mode));
   switch (mode) {
     case ColorEndpointMode::kLDRLumaDirect: {
-      const int l0 = UnquantizeCEValueFromRange(vals[0], max_value);
-      const int l1 = UnquantizeCEValueFromRange(vals[1], max_value);
+      const unsigned int l0 = UnquantizeCEValueFromRange(vals[0], max_value);
+      const unsigned int l1 = UnquantizeCEValueFromRange(vals[1], max_value);
 
       *endpoint_low_rgba = {{ l0, l0, l0, 255 }};
       *endpoint_high_rgba = {{ l1, l1, l1, 255 }};
@@ -772,11 +778,11 @@ void DecodeColorsForMode(const std::vector<int>& vals,
     break;
 
     case ColorEndpointMode::kLDRLumaBaseOffset: {
-      const int v0 = UnquantizeCEValueFromRange(vals[0], max_value);
-      const int v1 = UnquantizeCEValueFromRange(vals[1], max_value);
+      const unsigned int v0 = UnquantizeCEValueFromRange(vals[0], max_value);
+      const unsigned int v1 = UnquantizeCEValueFromRange(vals[1], max_value);
 
-      const int l0 = (v0 >> 2) | (v1 & 0xC0);
-      const int l1 = std::min(l0 + (v1 & 0x3F), 0xFF);
+      const unsigned int l0 = (v0 >> 2) | (v1 & 0xC0);
+      const unsigned int l1 = std::min(l0 + (v1 & 0x3F), 0xFFu);
 
       *endpoint_low_rgba = {{ l0, l0, l0, 255 }};
       *endpoint_high_rgba = {{ l1, l1, l1, 255 }};
@@ -784,10 +790,10 @@ void DecodeColorsForMode(const std::vector<int>& vals,
     break;
 
     case ColorEndpointMode::kLDRLumaAlphaDirect: {
-      constexpr int kNumVals =
+      constexpr unsigned int kNumVals =
           NumColorValuesForEndpointMode(ColorEndpointMode::kLDRLumaAlphaDirect);
 
-      std::array<int, kNumVals> v;
+      std::array<unsigned int, kNumVals> v;
       std::copy(vals.begin(), vals.end(), v.begin());
       Unquantize(&v, max_value);
 
@@ -797,10 +803,10 @@ void DecodeColorsForMode(const std::vector<int>& vals,
     break;
 
     case ColorEndpointMode::kLDRLumaAlphaBaseOffset: {
-      constexpr int kNumVals = NumColorValuesForEndpointMode(
+      constexpr unsigned int kNumVals = NumColorValuesForEndpointMode(
           ColorEndpointMode::kLDRLumaAlphaBaseOffset);
 
-      std::array<int, kNumVals> v;
+      std::array<unsigned int, kNumVals> v;
       std::copy(vals.begin(), vals.end(), v.begin());
       Unquantize(&v, max_value);
 

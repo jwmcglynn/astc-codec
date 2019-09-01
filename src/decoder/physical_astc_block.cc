@@ -56,9 +56,9 @@ enum class BlockMode {
 };
 
 struct WeightGridProperties {
-  int width;
-  int height;
-  int range;
+  unsigned int width;
+  unsigned int height;
+  unsigned int range;
 };
 
 // Local function prototypes
@@ -67,9 +67,9 @@ base::Optional<WeightGridProperties> DecodeWeightProps(
     const base::UInt128 astc_bits, std::string* error);
 std::array<int, 4> DecodeVoidExtentCoords(const base::UInt128 astc_bits);
 bool DecodeDualPlaneBit(const base::UInt128 astc_bits);
-int DecodeNumPartitions(const base::UInt128 astc_bits);
-int DecodeNumWeightBits(const base::UInt128 astc_bits);
-int DecodeDualPlaneBitStartPos(const base::UInt128 astc_bits);
+unsigned int DecodeNumPartitions(const base::UInt128 astc_bits);
+unsigned int DecodeNumWeightBits(const base::UInt128 astc_bits);
+unsigned int DecodeDualPlaneBitStartPos(const base::UInt128 astc_bits);
 ColorEndpointMode DecodeEndpointMode(const base::UInt128 astc_bits,
                                      int partition);
 int DecodeNumColorValues(const base::UInt128 astc_bits);
@@ -323,27 +323,25 @@ bool DecodeDualPlaneBit(const base::UInt128 astc_bits) {
   }
 
   // Otherwise, dual plane is determined by the 10th bit.
-  constexpr int kDualPlaneBitPosition = 10;
+  constexpr uint32_t kDualPlaneBitPosition = 10;
   return base::GetBits(astc_bits, kDualPlaneBitPosition, 1) != 0;
 }
 
-int DecodeNumPartitions(const base::UInt128 astc_bits) {
-  constexpr int kNumPartitionsBitPosition = 11;
-  constexpr int kNumPartitionsBitLength = 2;
+unsigned int DecodeNumPartitions(const base::UInt128 astc_bits) {
+  constexpr uint32_t kNumPartitionsBitPosition = 11;
+  constexpr uint32_t kNumPartitionsBitLength = 2;
 
   // Non-void extent blocks
   const uint64_t low_bits = astc_bits.LowBits();
-  const int num_partitions = 1 + static_cast<int>(
-      base::GetBits(low_bits,
+  const unsigned int num_partitions = 1 + base::GetBits(low_bits,
                     kNumPartitionsBitPosition,
-                    kNumPartitionsBitLength));
-  assert(num_partitions > 0);
+                    kNumPartitionsBitLength);
   assert(num_partitions <= kMaxNumPartitions);
 
   return num_partitions;
 }
 
-int DecodeNumWeightBits(const base::UInt128 astc_bits) {
+unsigned int DecodeNumWeightBits(const base::UInt128 astc_bits) {
   std::string error;
   auto maybe_weight_props = DecodeWeightProps(astc_bits, &error);
   if (!maybe_weight_props.hasValue()) {
@@ -353,7 +351,7 @@ int DecodeNumWeightBits(const base::UInt128 astc_bits) {
   const auto weight_props = maybe_weight_props.value();
 
   // Figure out the number of weights
-  int num_weights = weight_props.width * weight_props.height;
+  unsigned int num_weights = weight_props.width * weight_props.height;
   if (DecodeDualPlaneBit(astc_bits)) {
     num_weights *= 2;
   }
@@ -366,8 +364,8 @@ int DecodeNumWeightBits(const base::UInt128 astc_bits) {
 
 // Returns the number of bits after the weight data used to
 // store additional CEM bits.
-int DecodeNumExtraCEMBits(const base::UInt128 astc_bits) {
-  const int num_partitions = DecodeNumPartitions(astc_bits);
+unsigned int DecodeNumExtraCEMBits(const base::UInt128 astc_bits) {
+  const unsigned int num_partitions = DecodeNumPartitions(astc_bits);
 
   // Do we only have one partition?
   if (num_partitions == 1) {
@@ -375,22 +373,22 @@ int DecodeNumExtraCEMBits(const base::UInt128 astc_bits) {
   }
 
   // Do we have a shared CEM?
-  constexpr int kSharedCEMBitPosition = 23;
-  constexpr int kSharedCEMBitLength = 2;
+  constexpr uint32_t kSharedCEMBitPosition = 23;
+  constexpr uint32_t kSharedCEMBitLength = 2;
   const base::UInt128 shared_cem =
       base::GetBits(astc_bits, kSharedCEMBitPosition, kSharedCEMBitLength);
   if (shared_cem == 0) {
     return 0;
   }
 
-  const std::array<int, 4> extra_cem_bits_for_partition = {{ 0, 2, 5, 8 }};
+  const std::array<unsigned int, 4> extra_cem_bits_for_partition = {{0, 2, 5, 8}};
   return extra_cem_bits_for_partition[num_partitions - 1];
 }
 
 // Returns the starting position of the dual plane channel. This comes
 // before the weight data and extra CEM bits.
-int DecodeDualPlaneBitStartPos(const base::UInt128 astc_bits) {
-  const int start_pos = kASTCBlockSizeBits
+unsigned int DecodeDualPlaneBitStartPos(const base::UInt128 astc_bits) {
+  const unsigned int start_pos = kASTCBlockSizeBits
       - DecodeNumWeightBits(astc_bits)
       - DecodeNumExtraCEMBits(astc_bits);
 
@@ -707,7 +705,7 @@ base::Optional<int> PhysicalASTCBlock::NumColorBits() const {
   return color_bits;
 }
 
-base::Optional<int> PhysicalASTCBlock::ColorValuesRange() const {
+base::Optional<unsigned int> PhysicalASTCBlock::ColorValuesRange() const {
   if (IsIllegalEncoding()) return { };
 
   if (IsVoidExtent()) {

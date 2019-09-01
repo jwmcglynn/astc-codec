@@ -80,7 +80,7 @@ struct IntermediateBlockData {
   // should not write to this value themselves. If it is empty at the time
   // someone calls Pack(), it will be automatically inferred. Otherwise, it is
   // set by Unpack() based on what the underlying encoding specified.
-  base::Optional<int> endpoint_range;
+  base::Optional<unsigned int> endpoint_range;
 };
 
 // Returns the maximum value that a given endpoint value can take according to
@@ -89,8 +89,8 @@ struct IntermediateBlockData {
 //  -1 : Too many bits required to store weight grid
 //  -2 : There are too few bits allocated for color endpoint data according to
 //       C.2.24 in the ASTC spec
-int EndpointRangeForBlock(const IntermediateBlockData& data);
-inline int EndpointRangeForBlock(const VoidExtentData& data);
+unsigned int EndpointRangeForBlock(const IntermediateBlockData& data);
+inline unsigned int EndpointRangeForBlock(const VoidExtentData& data);
 
 // Unpacks the physical ASTC block into the intermediate block. Returns false
 // if the physical block is an error encoded block, or if the physical block
@@ -118,7 +118,7 @@ base::Optional<std::string> Pack(const VoidExtentData& data, base::UInt128* pb);
 //
 // Impl
 
-inline int EndpointRangeForBlock(const VoidExtentData& data) {
+inline unsigned int EndpointRangeForBlock(const VoidExtentData& data) {
   // Void extent blocks use 16-bit ARGB definitions
   return (1 << 16) - 1;
 }

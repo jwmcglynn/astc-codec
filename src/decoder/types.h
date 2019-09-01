@@ -64,8 +64,8 @@ constexpr unsigned int NumColorValuesForEndpointMode(ColorEndpointMode mode) {
 
 // We define a number of convenience types here that give more logical meaning
 // throughout the ASTC utilities.
-using RgbColor = std::array<int, 3>;
-using RgbaColor = std::array<int, 4>;
+using RgbColor = std::array<unsigned int, 3>;
+using RgbaColor = std::array<unsigned int, 4>;
 using Endpoint = RgbaColor;
 using EndpointPair = std::pair<Endpoint, Endpoint>;
 

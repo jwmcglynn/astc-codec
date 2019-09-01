@@ -112,7 +112,7 @@ class PhysicalASTCBlock {
 
   // Returns the maximum value that each of the encoded integers used to
   // represent the color endpoints can take.
-  base::Optional<int> ColorValuesRange() const;
+  base::Optional<unsigned int> ColorValuesRange() const;
 
  private:
   const base::UInt128 astc_bits_;

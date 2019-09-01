@@ -29,7 +29,7 @@ Partition GenerateSinglePartition(Footprint footprint) {
 }
 
 static std::vector<EndpointPair> DecodeEndpoints(const IntermediateBlockData& block) {
-  const int endpoint_range = block.endpoint_range
+  const unsigned int endpoint_range = block.endpoint_range
       ? block.endpoint_range.value()
       : EndpointRangeForBlock(block);
   assert(endpoint_range > 0);

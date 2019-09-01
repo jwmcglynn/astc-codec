@@ -82,8 +82,8 @@ void DecodeColorsForMode(const std::vector<int>& vals,
 
 // Returns true if the quantized |vals| in the range [0, max_value] use the
 // 'blue_contract' modification during decoding for the given |mode|.
-bool UsesBlueContract(int max_value, ColorEndpointMode mode,
-                      const std::vector<int>& vals);
+bool UsesBlueContract(unsigned int max_value, ColorEndpointMode mode,
+                      const std::vector<unsigned int>& vals);
 
 }  // namespace astc_codec
 
